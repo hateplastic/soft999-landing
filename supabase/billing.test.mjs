@@ -2,6 +2,15 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import { createHandler,hmac,parseEvent } from './handler.mjs';
+test('Dashboard setup accepts only the server default secret key',async()=>{
+ const h=createHandler(k=>k==='SUPABASE_SECRET_KEYS'?JSON.stringify({default:'sb_secret_test_only',other:'sb_secret_other'}):'',()=>{throw Error('No network expected');});
+ for(const key of ['', 'sb_publishable_test','sb_secret_other']){
+  assert.equal((await h(new Request('https://test/soft-billing',{method:'POST',headers:{apikey:key},body:'{}'}))).status,401);
+ }
+ assert.equal((await h(new Request('https://test/soft-billing',{method:'POST',headers:{apikey:'sb_secret_test_only'},body:'{}'}))).status,400);
+ const malformed=createHandler(k=>k==='SUPABASE_SECRET_KEYS'?'bad-json':'');
+ assert.equal((await malformed(new Request('https://test/setup',{method:'POST',body:'{}'}))).status,401);
+});
 const now=Date.parse('2026-10-19T12:00:00Z');
 const event={name:'new_subscription',created_at:'2026-10-19T10:00:00Z',sent_at:'2026-10-19T10:00:01Z',payload:{subscription_id:321,period_id:12,telegram_user_id:123456,expires_at:'2026-11-19T10:00:00Z',currency:'eur',price:400,period:'monthly',type:'regular'}};
 test('HMAC matches Node; event is accepted only for exact subscription, monthly EUR 400',async()=>{assert.equal(await hmac('secret','raw'),createHmac('sha256','secret').update('raw').digest('hex'));assert.equal((await parseEvent(event,'321',now)).p_review,false);for(const change of [{subscription_id:322},{telegram_user_id:0},{price:399},{currency:'usd'},{period:'yearly'},{type:'trial'},{expires_at:'invalid'}])assert.equal((await parseEvent({...event,payload:{...event.payload,...change}},'321',now)).p_review,true);});

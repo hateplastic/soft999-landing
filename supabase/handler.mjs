@@ -22,8 +22,12 @@ export function createHandler(env,fetcher=fetch){
     try{
       if(path==='health'&&request.method==='GET')return json({service:'soft-billing',telegram:!!value('TELEGRAM_BOT_TOKEN')&&!!value('TELEGRAM_WEBHOOK_SECRET'),tribute:!!value('TRIBUTE_API_KEY')&&/^\d+$/.test(value('TRIBUTE_SUBSCRIPTION_ID')),version:'0.2.0'});
       if(request.method!=='POST')return json({error:'method_not_allowed'},405);
-      if(path==='setup'){
-        const admin=value('SUPABASE_SERVICE_ROLE_KEY');if(!admin||!equal(request.headers.get('Authorization')||'','Bearer '+admin))return json({error:'unauthorized'},401);
+      if(path==='setup'||path==='soft-billing'){
+        const admin=value('SUPABASE_SERVICE_ROLE_KEY');
+        let defaultKey='';try{defaultKey=JSON.parse(value('SUPABASE_SECRET_KEYS')||'{}').default||'';}catch{}
+        const legacy=!!admin&&equal(request.headers.get('Authorization')||'','Bearer '+admin);
+        const modern=typeof defaultKey==='string'&&defaultKey.startsWith('sb_secret_')&&equal(request.headers.get('apikey')||'',defaultKey);
+        if(!legacy&&!modern)return json({error:'unauthorized'},401);
         const body=JSON.parse(await readBody(request));
         if(body.action==='subscriptions'){
           if(!value('TRIBUTE_API_KEY'))return json({error:'tribute_key_missing'},503);
