@@ -10,10 +10,16 @@ Bot token и webhook secret сохранены в Supabase, webhook Telegram з�
 
 Установщик Windows beta 0.2.0 с Python, Node, Chromium и FFmpeg: https://github.com/hateplastic/soft999-landing/releases/tag/v0.2.0-beta.1. Сертификата подписи издателя нет.
 
+## Обновление 20 октября 2026
+
+Владелец сохранил webhook Tribute и отправил тест. Событие принято с корректной подписью и записано в soft_billing_events как unknown/review (19 октября 17:59 UTC); тест не выдаёт Pro. Привязку Telegram владелец проверил успешно. BILLING_CHECKOUT_ENABLED=true сохранён; /health отвечает 200, telegram=true, tribute=true. Полный реальный платёж пока не проверен.
+
+SMTP пока выключен. Для Resend и DNS в Vercel требуется вход владельца. Подготовлены локальные письма подтверждения и восстановления; до настройки SMTP они не применены. Выбран отправитель Soft 99.9 <noreply@auth.soft999.app>, smtp.resend.com:465, пользователь resend, пароль — отдельный серверный API-ключ Resend для проверенного домена. Значения DNS брать из Resend, не заменять записи сайта.
+
 ## Оставшиеся действия
 
-1. В Tribute → Settings → API Keys сохранить Webhook URL: https://xlqakmypiusfrqymsqog.supabase.co/functions/v1/soft-billing/tribute. Не заменять адрес другого проекта без проверки назначения.
-2. После подтверждения настройки установить серверный секрет BILLING_CHECKOUT_ENABLED=true. До этого checkout закрыт; привязка Telegram доступна отдельно. Приём подписанных webhook не зависит от этого флага.
+1. Выполнено: в Tribute → Settings → API Keys сохранён Webhook URL: https://xlqakmypiusfrqymsqog.supabase.co/functions/v1/soft-billing/tribute. Не заменять адрес другого проекта без проверки назначения.
+2. Выполнено: серверный секрет BILLING_CHECKOUT_ENABLED=true включён после проверки тестового webhook. Приём подписанных webhook не зависит от этого флага.
 3. Войти на сайт, подтвердить Telegram через код бота, оплатить из того же Telegram-аккаунта. Реальный платёж выполняет владелец. Проверить processed, paid_until, Pro в кабинете и Windows-клиенте. Реальный платёж пока не проверен.
 4. Настроить SMTP для регистрации и восстановления внешних email. Подтверждение email не отключать.
 5. Проверить установку на отдельной чистой Windows, Free, отказ второго устройства и возврат к Free после истечения подписки.
