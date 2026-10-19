@@ -16,6 +16,8 @@ export function createAuthApi(config, fetcher = fetch) {
     resend:(email,redirect)=>request(`/auth/v1/resend?redirect_to=${encodeURIComponent(redirect)}`,{body:{email,type:'signup'}}),
     refresh:refresh_token=>request('/auth/v1/token?grant_type=refresh_token',{body:{refresh_token}}),
     user:token=>request('/auth/v1/user',{method:'GET',token}),
+    linkStart:(token,p_token_hash)=>request('/rest/v1/rpc/soft_link_start',{body:{p_token_hash},token}),
+    linkConfirm:(token,p_token_hash,p_code_hash)=>request('/rest/v1/rpc/soft_link_confirm',{body:{p_token_hash,p_code_hash},token}),
     account:token=>request('/rest/v1/rpc/soft_account',{body:{},token}),
     password:(token,password)=>request('/auth/v1/user',{method:'PUT',body:{password},token}),
     logout:token=>request('/auth/v1/logout?scope=local',{token})

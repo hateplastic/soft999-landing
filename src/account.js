@@ -1,9 +1,11 @@
+import { initBilling } from './billing.js';
 import { createAuthApi, authError } from './auth-api.js';
 export function initAccount(config) {
   const api=createAuthApi(config), $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
   const dialog=$('#account-dialog'), form=$('#auth-form'), fields=form.elements;
   let mode='login', session=null, recoveryToken=null, busy=false, generation=0;
   const redirect=location.origin+location.pathname;
+  const billing=initBilling(config,api,token,profile);
   function message(text,error=false){$('#auth-message').textContent=text;$('#auth-message').classList.toggle('error',error);}
   function switchMode(next){
     mode=next;message('');const password=['login','signup','reset'].includes(mode), email=mode!=='reset';
@@ -16,7 +18,7 @@ export function initAccount(config) {
     $('#auth-view').hidden=false;$('#profile-view').hidden=true;dialog.setAttribute('aria-labelledby','account-title');
   }
   function setSession(data){session={...data,expires_at:data.expires_at||Math.floor(Date.now()/1000)+(data.expires_in||3600)};generation++;$$('[data-account]').forEach(b=>b.textContent='Мой кабинет ↗');}
-  function clearSession(){session=null;recoveryToken=null;generation++;fields.password.value='';fields.confirm.value='';$$('[data-account]').forEach(b=>b.textContent=b.closest('footer')?'Личный кабинет ↗':'Войти ↗');}
+  function clearSession(){billing.reset();session=null;recoveryToken=null;generation++;fields.password.value='';fields.confirm.value='';$$('[data-account]').forEach(b=>b.textContent=b.closest('footer')?'Личный кабинет ↗':'Войти ↗');}
   async function token(){if(!session)throw new Error('No session');if(session.expires_at<Date.now()/1000+60){const data=await api.refresh(session.refresh_token);setSession(data);}return session.access_token;}
   async function profile(){
     $('#auth-view').hidden=true;$('#profile-view').hidden=false;$('#profile-view h2').id='profile-title';dialog.setAttribute('aria-labelledby','profile-title');$('#profile-email').textContent=session?.user?.email||'';
@@ -25,10 +27,11 @@ export function initAccount(config) {
     let snapshot=generation;
     try{const access=await token();snapshot=generation;const data=await api.account(access);if(snapshot!==generation)return;
       if(!data || !['free','pro','disabled'].includes(data.plan))throw new Error('Invalid account result');
+      billing.update(data);
       $('#account-plan-name').textContent=data.plan==='pro'?'Pro активен':data.plan==='disabled'?'Доступ приостановлен':'Free активен';
       $('#account-plan-description').textContent=data.plan==='pro'?`Несколько аккаунтов Telegram и X.${data.entitledUntil?' Оплачено до '+new Date(data.entitledUntil).toLocaleDateString('ru-RU')+'.':''}`:data.plan==='disabled'?'Обратись к владельцу сервиса для проверки доступа.':'1 Telegram + 1 X. Без ограничения по времени.';
       $('#account-device-text').textContent=data.deviceBound?'Устройство привязано в Windows-клиенте. Вход на сайте не меняет привязку.':'Устройство ещё не привязано. Оно привяжется при входе в Windows-клиент.';
-    }catch(e){if(snapshot!==generation)return;$('#account-plan-name').textContent='Статус недоступен';$('#account-plan-description').textContent=e.status===401?'Сессия истекла. Выйди и войди ещё раз.':'Проверить текущий тариф можно в Windows-клиенте. Проверка в кабинете временно недоступна.';}
+    }catch(e){if(snapshot!==generation)return;billing.reset();$('#account-plan-name').textContent='Статус недоступен';$('#account-plan-description').textContent=e.status===401?'Сессия истекла. Выйди и войди ещё раз.':'Проверить текущий тариф можно в Windows-клиенте. Проверка в кабинете временно недоступна.';}
     finally{$('#refresh-account').disabled=false;}
   }
   $$('[data-account]').forEach(b=>b.addEventListener('click',()=>{if(!dialog.open)dialog.showModal();if(session)profile();else switchMode(recoveryToken?'reset':'login');}));
@@ -50,6 +53,7 @@ export function initAccount(config) {
   $('#refresh-account').addEventListener('click',()=>{if(session)profile();});
   $('#signout').addEventListener('click',async()=>{const access=session?.access_token;clearSession();switchMode('login');message('Ты вышел из кабинета.');if(access){try{await api.logout(access);}catch{message('Локальный вход завершён. Сервер не подтвердил отзыв сессии; она истечёт автоматически.');}}});
   dialog.addEventListener('close',()=>{fields.password.value='';fields.confirm.value='';fields.password.type='password';$('#password-visibility').textContent='Показать';});
+  if(location.hash==='#account'){dialog.showModal();switchMode('login');}
   const hash=new URLSearchParams(location.hash.slice(1));
   if(hash.has('access_token')||hash.has('error')||hash.has('error_description')){
     history.replaceState(null,'',location.pathname+location.search);

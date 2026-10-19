@@ -54,15 +54,15 @@ pauseLabel();drawDemo();
 async function download() {
   const publicUrl=safeLink(config.downloadUrl);
   if(publicUrl){location.assign(publicUrl);return;}
-  if(local){try {const r=await fetch('/api/release',{cache:'no-store'});const release=await r.json();if(r.ok&&release.available){info('Windows-сборка', ['Скачай архив, распакуй его в отдельную папку и следуй инструкции внутри. Это portable-сборка: полноценный установщик ещё не выпущен.','В этом локальном предпросмотре архив берётся из отдельной папки релизов. В репозиторий лендинга он не входит.'],{url:config.previewDownloadPath,label:'Скачать ZIP · Windows x64'});return;}}catch{}}
+  if(local){try {const r=await fetch('/api/release',{cache:'no-store'});const release=await r.json();if(r.ok&&release.available){info('Windows-сборка', ['Скачай архив, распакуй его в отдельную папку и следуй инструкции внутри. Это дополнительная portable-сборка для локальной проверки.','В этом локальном предпросмотре архив берётся из отдельной папки релизов. В репозиторий лендинга он не входит.'],{url:config.previewDownloadPath,label:'Скачать ZIP · Windows x64'});return;}}catch{}}
   info('Сборка готовится к публикации', ['Публичная загрузка Windows-клиента пока не открыта. После публикации релиза здесь появится прямая ссылка на скачивание.','Free будет доступен без ограничения по времени: один аккаунт Telegram и один X.']);
 }
 $$('[data-download]').forEach(b=>b.addEventListener('click',download));
 const purchase=safeLink(config.purchaseUrl);
 if(purchase){$('#pro-label').textContent='PRO';$('#pro-caption').textContent='Подписка через Telegram / Tribute.';$$('[data-pro]').forEach(b=>b.firstChild.textContent='Подключить Pro ');}
-$$('[data-pro]').forEach(b=>b.addEventListener('click',()=>info('Больше возможностей с Pro', ['Pro — $4 в месяц: несколько аккаунтов Telegram и X на одном устройстве. Free останется доступен после окончания оплаченного периода.', purchase?'Перед оплатой проверь, что твой Telegram связан с учётной записью Soft 99.9.':'Оплата пока не подключена. Мы не принимаем деньги и не активируем подписку из этой демонстрации.'],purchase?{url:purchase,label:'Перейти к оплате'}:null)));
+$$('[data-pro]').forEach(b=>b.addEventListener('click',()=>document.querySelector('[data-account]').click()));
 $$('[data-info]').forEach(b=>b.addEventListener('click',()=>{
   if(b.dataset.info==='privacy')info('Твои данные', ['Для учётной записи используются email и пароль. Авторизация выполняется через Supabase; тариф и привязка устройства хранятся отдельно от локальных аккаунтов Telegram и X.','Сайт не получает сессии Telegram, cookies X и содержимое локальных профилей. Вход на сайте не занимает дополнительный слот устройства.','Токены входа находятся только в памяти этой вкладки и удаляются при перезагрузке или выходе. На лендинге нет рекламных трекеров. Полная политика с контактами владельца будет опубликована перед публичным запуском.']);
-  else info('О текущей версии',[`Soft 99.9 · ${config.version} · ${config.releaseLabel}.`,'В этой версии приложение запускается через START.cmd и открывает локальную панель в браузере. Для первого запуска потребуются шаги установки из инструкции в архиве.','На сайте показано интерактивное воспроизведение интерфейса. События и профили в демонстрации вымышлены; реальные сообщения не отправляются.']);
+  else info('О текущей версии',[`Soft 99.9 · ${config.version} · ${config.releaseLabel}.`,'Установи приложение и открой ярлык Soft 99.9. Панель работает в браузере на твоём компьютере. Python, Node.js и Chromium входят в комплект.','На сайте показано интерактивное воспроизведение интерфейса. События и профили в демонстрации вымышлены; реальные сообщения не отправляются.']);
 }));
 initAccount(config);
