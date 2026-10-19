@@ -20,7 +20,7 @@ export function createHandler(env,fetcher=fetch){
   return async request=>{
     const path=new URL(request.url).pathname.split('/').pop();
     try{
-      if(path==='health'&&request.method==='GET')return json({service:'soft-billing',telegram:!!value('TELEGRAM_BOT_TOKEN')&&!!value('TELEGRAM_WEBHOOK_SECRET'),tribute:!!value('TRIBUTE_API_KEY')&&/^\d+$/.test(value('TRIBUTE_SUBSCRIPTION_ID')),version:'0.2.0'});
+      if(path==='health'&&request.method==='GET')return json({service:'soft-billing',telegram:!!value('TELEGRAM_BOT_TOKEN')&&!!value('TELEGRAM_WEBHOOK_SECRET'),tribute:value('BILLING_CHECKOUT_ENABLED')==='true'&&!!value('TRIBUTE_API_KEY')&&/^[1-9]\d*$/.test(value('TRIBUTE_SUBSCRIPTION_ID')),version:'0.2.0'});
       if(request.method!=='POST')return json({error:'method_not_allowed'},405);
       if(path==='setup'||path==='soft-billing'){
         const admin=value('SUPABASE_SERVICE_ROLE_KEY');
@@ -32,7 +32,7 @@ export function createHandler(env,fetcher=fetch){
         if(body.action==='subscriptions'){
           if(!value('TRIBUTE_API_KEY'))return json({error:'tribute_key_missing'},503);
           const r=await fetcher('https://tribute.tg/api/v1/subscriptions',{headers:{'Api-Key':value('TRIBUTE_API_KEY')},signal:AbortSignal.timeout(10000)});if(!r.ok)throw new Error('tribute_error');
-          const data=await r.json();return json({subscriptions:(data.result||[]).map(s=>({id:s.id,name:s.name,periods:s.periods}))});
+          const data=await r.json();return json({subscriptions:(data.result||[]).map(s=>({id:s.subscriptionId,name:s.name,currency:s.currency,periods:s.periods}))});
         }
         if(body.action!=='telegram')return json({error:'invalid_action'},400);
         if(!/^[A-Za-z0-9_-]{32,256}$/.test(value('TELEGRAM_WEBHOOK_SECRET')))return json({error:'webhook_secret_missing'},503);
