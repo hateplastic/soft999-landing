@@ -1,41 +1,27 @@
-# Soft 99.9: подключение подписки
+# Soft 99.9 — состояние подключения
 
-Сайт: https://soft999.app/. Supabase: xlqakmypiusfrqymsqog. Бот: @soft999acess_bot. Цена Pro: 4 EUR/месяц плюс комиссия Tribute.
+Сайт: https://soft999.app/. Бот: @soft999acess_bot. Supabase: xlqakmypiusfrqymsqog.
 
-## Сервер
+## Подтверждено 19 октября 2026
 
-Миграция `supabase/202610190001_billing.sql` применена 19 октября 2026. Таблицы закрыты RLS и не доступны напрямую клиентам. Пользователь может начать и подтвердить только собственную привязку. Браузер не меняет устройство. Серверная функция `soft-billing` развёрнута; секреты и входящие webhook ещё требуют настройки.
+Миграция supabase/202610190001_billing.sql применена. Таблицы закрыты RLS; пользователь не меняет тариф. Сайт не меняет привязку устройства. Обработчик soft-billing развёрнут; legacy JWT отключён только для него. Telegram проверяется секретным заголовком, Tribute — HMAC-SHA256 исходного тела.
 
-`supabase/soft-billing-dashboard.ts` — самодостаточный исходник для Supabase Dashboard → Edge Functions → Code. `supabase/handler.mjs` — модуль обработчика для тестов; `node --test supabase/billing.test.mjs` запускает пять тестов. Не помещайте секреты в эти файлы или GitHub.
+Bot token и webhook secret сохранены в Supabase, webhook Telegram зарегистрирован. Ключ Tribute сохранён только в Supabase и проверен через API каталога (HTTP 200). Тариф Soft 999 Pro: subscriptionId 275353, periodId 520462, monthly, 4 EUR. Каталог возвращает цену 4, webhook — 400 в минимальных единицах. TRIBUTE_SUBSCRIPTION_ID=275353 сохранён.
 
-Для webhook требуется отключить legacy JWT **только у soft-billing**. События Tribute проверяются HMAC-SHA256 по сырому телу, Telegram — секретным заголовком. Служебный маршрут `/setup` требует service_role. Доступ пользователей к PostgreSQL по-прежнему требует Supabase Auth. 19 октября после разрешения владельца legacy JWT отключён только у soft-billing. Проверено: /health → 200; служебный /setup без авторизации → 401; webhook без настройки → 503.
+Установщик Windows beta 0.2.0 с Python, Node, Chromium и FFmpeg: https://github.com/hateplastic/soft999-landing/releases/tag/v0.2.0-beta.1. Сертификата подписи издателя нет.
 
-## Секреты Supabase Edge Functions
+## Оставшиеся действия
 
-- `TELEGRAM_BOT_TOKEN`: новый токен @soft999acess_bot, прежний присланный в чат заменить через BotFather.
-- `TELEGRAM_WEBHOOK_SECRET`: случайная строка из 32–256 букв, цифр, `_` и `-`.
-- `TRIBUTE_API_KEY`: ключ автора Tribute, используемый также для проверки подписи webhook.
-- `TRIBUTE_SUBSCRIPTION_ID`: числовой идентификатор именно подписки Soft 99.9 Pro; не короткий код веб-ссылки.
+1. В Tribute → Settings → API Keys сохранить Webhook URL: https://xlqakmypiusfrqymsqog.supabase.co/functions/v1/soft-billing/tribute. Не заменять адрес другого проекта без проверки назначения.
+2. После подтверждения настройки установить серверный секрет BILLING_CHECKOUT_ENABLED=true. До этого checkout закрыт; привязка Telegram доступна отдельно. Приём подписанных webhook не зависит от этого флага.
+3. Войти на сайт, подтвердить Telegram через код бота, оплатить из того же Telegram-аккаунта. Реальный платёж выполняет владелец. Проверить processed, paid_until, Pro в кабинете и Windows-клиенте. Реальный платёж пока не проверен.
+4. Настроить SMTP для регистрации и восстановления внешних email. Подтверждение email не отключать.
+5. Проверить установку на отдельной чистой Windows, Free, отказ второго устройства и возврат к Free после истечения подписки.
 
-SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY предоставляет среда Edge Functions. Не копируйте service_role в сайт или клиент. Ключи вводятся владельцем непосредственно в Supabase, не в чат.
+## Исходники и проверки
 
-После ввода ключа Tribute оператор может вызвать POST `/setup` с `{"action":"subscriptions"}` и служебной авторизацией, получить числовой ID и сверить monthly / EUR / 400. После настройки бота POST `/setup` с `{"action":"telegram"}` регистрирует webhook только для ожидаемого бота; чужой webhook не перезаписывается.
+supabase/handler.mjs — канонический обработчик; supabase/soft-billing-dashboard.ts — тот же код с Deno.serve для Dashboard. npm test: 9 проверок каталога, HMAC, операторской авторизации, checkout и событий. npm run check и npm run build проверяют сайт. SQL regression-тест supabase/billing-database.sql выполняется с ROLLBACK; облачный прогон завершился PASS.
 
-В кабинете автора Tribute указать webhook:
+Защищённый POST /setup (или корень функции в Dashboard Test) принимает {"action":"subscriptions"} либо {"action":"telegram"}. Авторизация — service_role Bearer либо default secret key из SUPABASE_SECRET_KEYS в apikey. Публичные ключи не принимаются. Секреты не помещать в GitHub или клиент.
 
-`https://xlqakmypiusfrqymsqog.supabase.co/functions/v1/soft-billing/tribute`
-
-В кабинете сайта сначала подтвердить Telegram: открыть бота и ввести код обратно на сайте. Оплачивать из того же Telegram-аккаунта. Email-only checkout без Telegram ID автоматически не активирует Pro, такое событие попадает в review.
-
-## Проверка перед продажами
-
-1. Настроить SMTP и проверить регистрацию, подтверждение и восстановление для внешнего email. Подтверждение почты не отключать.
-2. Проверить привязку Telegram, защиту от неверных кодов и повторного использования.
-3. Выполнить реальный платёж владельцем. Убедиться, что событие processed, paid_until совпадает с Tribute, кабинет и Windows-клиент показывают Pro.
-4. Проверить повтор события, продление, отмену (сохраняет оплаченные дни), истечение → Free, второй компьютер → отказ.
-5. Нераспознанные события и платежи другого продукта получают review и не выдают доступ. Возвраты требуют операторской проверки; автоматический возврат не реализован.
-
-Наличие ключей в `/health` не доказывает доставку webhook или успешный платёж. До реального теста не считать оплату готовой.
-
-
-19 октября billing-database.sql выполнен в облаке с ROLLBACK: PASS для привязки, неверного кода, повторов, отмены, старого события, истечения, устройства и прав. Реальных платежей и писем тест не выполнял.
+Продление не уменьшает оплаченный срок, отмена сохраняет оплаченные дни. Повторы идемпотентны. Другие тарифы, подарки, trial и события без Telegram ID уходят в review без выдачи Pro. Возвраты требуют операторской проверки; автоматический refund-процесс не реализован. Наличие ключей и health не заменяют проверку доставки и реального платежа.
