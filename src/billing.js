@@ -2,17 +2,17 @@ const $=s=>document.querySelector(s);
 const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 async function hash(s){return hex(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)));}
 export function initBilling(config,api,getToken,onLinked){
-  let nonce=null,ready=false,linked=false,epoch=0;
+  let nonce=null,ready=false,paymentReady=false,linked=false,epoch=0;
   function render(){
-    $('#pro-label').textContent=ready?'PRO':'СКОРО';
-    $('#pro-caption').textContent=ready?'Подтверждение Telegram и оплата — в личном кабинете.':'Оплата откроется после подключения Tribute.';
-    $('#billing-status').textContent=!ready?'Подключение оплаты завершается.':linked?'Telegram подтверждён. Оплачивай из этого же Telegram-аккаунта.':'Подтверди Telegram, чтобы оплата активировала Pro именно в твоём аккаунте.';
-    $('#link-telegram').hidden=!ready||linked;$('#checkout-pro').hidden=!ready||!linked;
-    if(ready&&linked)$('#checkout-pro').href=config.tributeUrl;
+    $('#pro-label').textContent=paymentReady?'PRO':'СКОРО';
+    $('#pro-caption').textContent=paymentReady?'Подтверждение Telegram и оплата — в личном кабинете.':'Оплата откроется после подключения Tribute.';
+    $('#billing-status').textContent=!ready?'Подключение оплаты завершается.':linked?(paymentReady?'Telegram подтверждён. Оплачивай из этого же Telegram-аккаунта.':'Telegram подтверждён. Подключение оплаты завершается.'):'Подтверди Telegram, чтобы оплата активировала Pro именно в твоём аккаунте.';
+    $('#link-telegram').hidden=!ready||linked;$('#checkout-pro').hidden=!paymentReady||!linked;
+    if(paymentReady&&linked)$('#checkout-pro').href=config.tributeUrl;
   }
-  function reset(){nonce=null;linked=false;ready=false;epoch++;$('#telegram-code-form').hidden=true;$('#telegram-open').hidden=true;$('#telegram-code').value='';$('#billing-message').textContent='';render();}
+  function reset(){nonce=null;linked=false;ready=false;paymentReady=false;epoch++;$('#telegram-code-form').hidden=true;$('#telegram-open').hidden=true;$('#telegram-code').value='';$('#billing-message').textContent='';render();}
   async function update(data){linked=data.telegramLinked===true;const current=++epoch;
-    try{const r=await fetch(config.supabaseUrl+'/functions/v1/soft-billing/health',{signal:AbortSignal.timeout(8000)});const h=await r.json();if(current!==epoch)return;ready=r.ok&&h.telegram===true&&h.tribute===true;}catch{if(current!==epoch)return;ready=false;}render();if(linked){nonce=null;$('#telegram-code-form').hidden=true;$('#telegram-open').hidden=true;}
+    try{const r=await fetch(config.supabaseUrl+'/functions/v1/soft-billing/health',{signal:AbortSignal.timeout(8000)});const h=await r.json();if(current!==epoch)return;ready=r.ok&&h.telegram===true;paymentReady=ready&&h.tribute===true;}catch{if(current!==epoch)return;ready=false;paymentReady=false;}render();if(linked){nonce=null;$('#telegram-code-form').hidden=true;$('#telegram-open').hidden=true;}
   }
   $('#link-telegram').addEventListener('click',async()=>{
     const button=$('#link-telegram');button.disabled=true;$('#billing-message').textContent='';
