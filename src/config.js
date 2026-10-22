@@ -1,10 +1,10 @@
 export const config = {
   "supabaseUrl": "https://xlqakmypiusfrqymsqog.supabase.co",
   "supabasePublishableKey": "sb_publishable_7leXVjNlUR6ffr3KgNXOgA_FYd1qN_c",
-  "downloadUrl": "https://github.com/hateplastic/soft999-landing/releases/download/v0.4.0-beta.1/Soft-99.9-Setup-0.4.0-x64.exe",
+  "downloadUrl": "https://github.com/hateplastic/soft999-landing/releases/download/v0.4.1-beta.1/Soft-99.9-Setup-0.4.1-x64.exe",
   "purchaseUrl": "",
   "supportUrl": "",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "releaseLabel": "Windows x64 · beta · установщик",
   "previewDownloadPath": "/download/client.zip",
   "telegramBot": "soft999acess_bot",
