@@ -4,6 +4,17 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+const analyticsConsentKey='soft999.analytics.consent.v1';
+const analyticsId=/^G-[A-Z0-9]+$/.test(config.googleAnalyticsId||'')?config.googleAnalyticsId:'';
+function startAnalytics(){if(!analyticsId||local)return;window['ga-disable-'+analyticsId]=false;if(window.gtag)return;window.dataLayer=window.dataLayer||[];window.gtag=function(){window.dataLayer.push(arguments)};window.gtag('js',new Date());window.gtag('config',analyticsId,{anonymize_ip:true});const script=document.createElement('script');script.async=true;script.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(analyticsId);document.head.append(script);}
+function analyticsEvent(name,params={}){try{if(window.gtag&&!local&&localStorage.getItem(analyticsConsentKey)==='accepted')window.gtag('event',name,params);}catch{}}
+window.softAnalytics=analyticsEvent;
+const consentPanel=$('#analytics-consent');
+function saveAnalyticsConsent(accepted){localStorage.setItem(analyticsConsentKey,accepted?'accepted':'rejected');consentPanel.hidden=true;if(accepted)startAnalytics();else if(analyticsId)window['ga-disable-'+analyticsId]=true;}
+$('#analytics-accept').addEventListener('click',()=>saveAnalyticsConsent(true));
+$('#analytics-reject').addEventListener('click',()=>saveAnalyticsConsent(false));
+$$('[data-analytics-settings]').forEach(button=>button.addEventListener('click',()=>{consentPanel.hidden=false;}));
+try{const consent=localStorage.getItem(analyticsConsentKey);if(consent==='accepted')startAnalytics();else if(!consent)consentPanel.hidden=false;}catch{}
 function safeLink(value) { try { const u = new URL(value); return u.protocol === 'https:' ? u.href : null; } catch { return null; } }
 function info(title, paragraphs, link) {
   $('#info-title').textContent = title;
@@ -51,7 +62,8 @@ if(reduced.matches)elapsed=11000;
 new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;},{threshold:.1}).observe($('.flow-demo'));
 setInterval(()=>{const now=performance.now();if(!paused&&!document.hidden&&inView)elapsed+=Math.min(now-last,150);last=now;drawDemo();},80);
 pauseLabel();drawDemo();
-async function download() {
+async function download(event) {
+  analyticsEvent('download_click',{placement:event?.currentTarget?.dataset?.download||'button'});
   const publicUrl=safeLink(config.downloadUrl);
   if(publicUrl){location.assign(publicUrl);return;}
   if(local){try {const r=await fetch('/api/release',{cache:'no-store'});const release=await r.json();if(r.ok&&release.available){info('Windows-сборка', ['Скачай архив, распакуй его в отдельную папку и следуй инструкции внутри. Это дополнительная portable-сборка для локальной проверки.','В этом локальном предпросмотре архив берётся из отдельной папки релизов. В репозиторий лендинга он не входит.'],{url:config.previewDownloadPath,label:'Скачать ZIP · Windows x64'});return;}}catch{}}
@@ -62,7 +74,7 @@ const purchase=safeLink(config.purchaseUrl);
 if(purchase){$('#pro-label').textContent='PRO';$('#pro-caption').textContent='Подписка через Telegram / Tribute.';$$('[data-pro]').forEach(b=>b.firstChild.textContent='Подключить Pro ');}
 $$('[data-pro]').forEach(b=>b.addEventListener('click',()=>document.querySelector('[data-account]').click()));
 $$('[data-info]').forEach(b=>b.addEventListener('click',()=>{
-  if(b.dataset.info==='privacy')info('Твои данные', ['Для учётной записи используются email и пароль. Авторизация выполняется через Supabase; тариф и привязка устройства хранятся отдельно от локальных аккаунтов Telegram и X.','Сайт не получает сессии Telegram, cookies X и содержимое локальных профилей. Вход на сайте не занимает дополнительный слот устройства.','Токены входа находятся только в памяти этой вкладки и удаляются при перезагрузке или выходе. На лендинге нет рекламных трекеров. Полная политика с контактами владельца будет опубликована перед публичным запуском.']);
+  if(b.dataset.info==='privacy')info('\u0422\u0432\u043e\u0438 \u0434\u0430\u043d\u043d\u044b\u0435', ['\u0414\u043b\u044f \u0443\u0447\u0451\u0442\u043d\u043e\u0439 \u0437\u0430\u043f\u0438\u0441\u0438 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u044e\u0442\u0441\u044f email \u0438 \u043f\u0430\u0440\u043e\u043b\u044c. Supabase \u0445\u0440\u0430\u043d\u0438\u0442 \u0442\u0430\u0440\u0438\u0444 \u0438 \u043f\u0440\u0438\u0432\u044f\u0437\u043a\u0443 \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u0430.', '\u0421\u0430\u0439\u0442 \u043d\u0435 \u043f\u043e\u043b\u0443\u0447\u0430\u0435\u0442 \u0441\u0435\u0441\u0441\u0438\u0438 Telegram, cookies X \u0438 \u0441\u043e\u0434\u0435\u0440\u0436\u0438\u043c\u043e\u0435 \u043b\u043e\u043a\u0430\u043b\u044c\u043d\u044b\u0445 \u043f\u0440\u043e\u0444\u0438\u043b\u0435\u0439.', '\u0415\u0441\u043b\u0438 \u0442\u044b \u0440\u0430\u0437\u0440\u0435\u0448\u0438\u0448\u044c \u0430\u043d\u0430\u043b\u0438\u0442\u0438\u043a\u0443, Google Analytics \u0431\u0443\u0434\u0435\u0442 \u0443\u0447\u0438\u0442\u044b\u0432\u0430\u0442\u044c \u043f\u043e\u0441\u0435\u0449\u0435\u043d\u0438\u044f, \u0441\u043a\u0430\u0447\u0438\u0432\u0430\u043d\u0438\u044f \u0438 \u043f\u0435\u0440\u0435\u0445\u043e\u0434\u044b \u043a \u043e\u043f\u043b\u0430\u0442\u0435. Email, password \u0438 \u0434\u0430\u043d\u043d\u044b\u0435 \u043f\u043e\u043b\u0435\u0439 \u043d\u0435 \u043f\u0435\u0440\u0435\u0434\u0430\u044e\u0442\u0441\u044f. \u0412\u044b\u0431\u043e\u0440 \u043c\u043e\u0436\u043d\u043e \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0432 \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430\u0445 \u0430\u043d\u0430\u043b\u0438\u0442\u0438\u043a\u0438.']);
   else info('О текущей версии',[`Soft 99.9 · ${config.version} · ${config.releaseLabel}.`,'Установи приложение и открой ярлык Soft 99.9. Панель работает в браузере на твоём компьютере. Python, Node.js и Chromium входят в комплект.','На сайте показано интерактивное воспроизведение интерфейса. События и профили в демонстрации вымышлены; реальные сообщения не отправляются.']);
 }));
 initAccount(config);

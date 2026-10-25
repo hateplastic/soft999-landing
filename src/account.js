@@ -44,7 +44,7 @@ export function initAccount(config) {
     try{
       const email=fields.email.value.trim(),password=fields.password.value;
       if(mode==='login'){setSession(await api.login(email,password));fields.password.value='';await profile();}
-      else if(mode==='signup'){const result=await api.signup(email,password,redirect);fields.password.value='';fields.confirm.value='';if(result.access_token){setSession(result);await profile();}else{switchMode('login');message('Проверь почту. Если регистрация доступна для этого адреса, придёт письмо с дальнейшими шагами.');}}
+      else if(mode==='signup'){const result=await api.signup(email,password,redirect);if(result.user&&(!Array.isArray(result.user.identities)||result.user.identities.length>0))window.softAnalytics?.('sign_up',{method:'email'});fields.password.value='';fields.confirm.value='';if(result.access_token){setSession(result);await profile();}else{switchMode('login');message('Проверь почту. Если регистрация доступна для этого адреса, придёт письмо с дальнейшими шагами.');}}
       else if(mode==='recover'||mode==='resend'){await api[mode](email,redirect);message('Если для этого адреса доступно письмо, оно скоро придёт. Проверь также папку «Спам».');}
       else if(mode==='reset'){if(!recoveryToken)throw new Error('Missing recovery token');await api.password(recoveryToken,password);try{await api.logout(recoveryToken);}catch{}clearSession();switchMode('login');message('Пароль изменён. Теперь можно войти.');}
     }catch(e){message(authError(e),true);}

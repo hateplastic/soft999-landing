@@ -1,6 +1,7 @@
 export const config = {
   "supabaseUrl": "https://xlqakmypiusfrqymsqog.supabase.co",
   "supabasePublishableKey": "sb_publishable_7leXVjNlUR6ffr3KgNXOgA_FYd1qN_c",
+  "googleAnalyticsId": "G-F3TQK82J72",
   "downloadUrl": "https://github.com/hateplastic/soft999-landing/releases/download/v0.4.1-beta.1/Soft-99.9-Setup-0.4.1-x64.exe",
   "purchaseUrl": "",
   "supportUrl": "",

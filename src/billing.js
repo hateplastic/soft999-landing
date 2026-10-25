@@ -14,6 +14,7 @@ export function initBilling(config,api,getToken,onLinked){
   async function update(data){linked=data.telegramLinked===true;const current=++epoch;
     try{const r=await fetch(config.supabaseUrl+'/functions/v1/soft-billing/health',{signal:AbortSignal.timeout(8000)});const h=await r.json();if(current!==epoch)return;ready=r.ok&&h.telegram===true;paymentReady=ready&&h.tribute===true;}catch{if(current!==epoch)return;ready=false;paymentReady=false;}render();if(linked){nonce=null;$('#telegram-code-form').hidden=true;$('#telegram-open').hidden=true;}
   }
+  $('#checkout-pro').addEventListener('click',()=>window.softAnalytics?.('pro_checkout_click',{provider:'tribute'}));
   $('#link-telegram').addEventListener('click',async()=>{
     const button=$('#link-telegram');button.disabled=true;$('#billing-message').textContent='';
     try{nonce=btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
