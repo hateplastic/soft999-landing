@@ -1,5 +1,7 @@
 import { config } from './config.js';
 import { initAccount } from './account.js';
+import { initLocale } from './i18n.js';
+initLocale();
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
