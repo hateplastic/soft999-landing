@@ -29,7 +29,7 @@ export function initAccount(config) {
       if(!data || !['free','pro','disabled'].includes(data.plan))throw new Error('Invalid account result');
       billing.update(data);
       $('#account-plan-name').textContent=data.plan==='pro'?'Pro активен':data.plan==='disabled'?'Доступ приостановлен':'Free активен';
-      $('#account-plan-description').textContent=data.plan==='pro'?`Несколько аккаунтов Telegram и X.${data.entitledUntil?' Оплачено до '+new Date(data.entitledUntil).toLocaleDateString('ru-RU')+'.':''}`:data.plan==='disabled'?'Обратись к владельцу сервиса для проверки доступа.':'1 Telegram + 1 X. Без ограничения по времени.';
+      $('#account-plan-description').textContent=data.plan==='pro'?`Безлимитное число аккаунтов Telegram и X.${data.entitledUntil?' Оплачено до '+new Date(data.entitledUntil).toLocaleDateString('ru-RU')+'.':''}`:data.plan==='disabled'?'Обратись к владельцу сервиса для проверки доступа.':'1 Telegram + 1 X. Без ограничения по времени.';
       $('#account-device-text').textContent=data.deviceBound?'Устройство привязано в Windows-клиенте. Вход на сайте не меняет привязку.':'Устройство ещё не привязано. Оно привяжется при входе в Windows-клиент.';
     }catch(e){if(snapshot!==generation)return;billing.reset();$('#account-plan-name').textContent='Статус недоступен';$('#account-plan-description').textContent=e.status===401?'Сессия истекла. Выйди и войди ещё раз.':'Проверить текущий тариф можно в Windows-клиенте. Проверка в кабинете временно недоступна.';}
     finally{$('#refresh-account').disabled=false;}
