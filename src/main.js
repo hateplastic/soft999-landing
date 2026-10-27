@@ -45,8 +45,6 @@ if ('IntersectionObserver' in window) {
   const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in-view');observer.unobserve(e.target);}}),{threshold:.08});
   $$('.reveal').forEach(el=>observer.observe(el));
 }
-$('.hero').addEventListener('pointermove', e => { if(reduced.matches || innerWidth<1101 || e.pointerType!=='mouse')return;const r=e.currentTarget.getBoundingClientRect();$('#universe').style.setProperty('--px',`${(e.clientX-r.left-r.width/2)*.017}px`);$('#universe').style.setProperty('--py',`${(e.clientY-r.top-r.height/2)*.017}px`); });
-$('.hero').addEventListener('pointerleave',()=>{$('#universe').style.setProperty('--px','0px');$('#universe').style.setProperty('--py','0px');});
 const reply='Собрали аккаунты и задачи в одной панели. Стало проще видеть, что происходит, и держать фокус на разговоре.';
 let elapsed=0, paused=reduced.matches, last=performance.now(), inView=false;
 const statuses=['Новый пост получен · демо','Готовим комментарий · демо','Комментарий проверен · демо','Комментарий отправлен · демо'];
@@ -69,7 +67,12 @@ pauseLabel();drawDemo();
 async function download(event) {
   analyticsEvent('download_click',{placement:event?.currentTarget?.dataset?.download||'button'});
   const publicUrl=safeLink(config.downloadUrl);
-  if(publicUrl){location.assign(publicUrl);return;}
+  if(publicUrl){
+    if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+      info('Установка на Windows',['Этот установщик предназначен для Windows 10 / 11 x64. Сохрани ссылку на сайт и открой её на компьютере.','https://soft999.app/'],{url:publicUrl,label:'Скачать EXE всё равно'});return;
+    }
+    location.assign(publicUrl);return;
+  }
   if(local){try {const r=await fetch('/api/release',{cache:'no-store'});const release=await r.json();if(r.ok&&release.available){info('Windows-сборка', ['Скачай архив, распакуй его в отдельную папку и следуй инструкции внутри. Это дополнительная portable-сборка для локальной проверки.','В этом локальном предпросмотре архив берётся из отдельной папки релизов. В репозиторий лендинга он не входит.'],{url:config.previewDownloadPath,label:'Скачать ZIP · Windows x64'});return;}}catch{}}
   info('Сборка готовится к публикации', ['Публичная загрузка Windows-клиента пока не открыта. После публикации релиза здесь появится прямая ссылка на скачивание.','Free будет доступен без ограничения по времени: один аккаунт Telegram и один X.']);
 }
@@ -82,3 +85,21 @@ $$('[data-info]').forEach(b=>b.addEventListener('click',()=>{
   else info('О текущей версии',[`Soft 99.9 · ${config.version} · ${config.releaseLabel}.`,'Установи приложение и открой ярлык Soft 99.9. Панель работает в браузере на твоём компьютере. Python, Node.js и Chromium входят в комплект.','На сайте показано интерактивное воспроизведение интерфейса. События и профили в демонстрации вымышлены; реальные сообщения не отправляются.']);
 }));
 initAccount(config);
+
+// Public contact destinations only. Social links appear when configured.
+for(const anchor of $$('[data-support]')){
+ const url=safeLink(config.supportUrl);if(url)anchor.href=url;
+ anchor.addEventListener('click',()=>analyticsEvent('support_click',{placement:'support'}));
+}
+const socials=$('#social-links');
+for(const item of (config.socialLinks||[])){
+ const href=safeLink(item.url);if(!href||typeof item.label!=='string')continue;
+ const a=document.createElement('a');a.href=href;a.textContent=item.label;a.target='_blank';a.rel='noopener noreferrer';socials.append(a);
+}
+socials.hidden=!socials.children.length;
+$$('[data-copy-site]').forEach(button=>button.addEventListener('click',async()=>{
+ try{await navigator.clipboard.writeText('https://soft999.app/');$('.copy-status').textContent='Ссылка скопирована';analyticsEvent('copy_desktop_link');}
+ catch{info('Ссылка для компьютера',['Скопируй этот адрес и открой его на Windows-компьютере:','https://soft999.app/']);}
+}));
+$$('.faq-list details').forEach((item,index)=>item.addEventListener('toggle',()=>{if(item.open)analyticsEvent('faq_open',{item:index+1});}));
+$$('[data-pro]').forEach(button=>button.addEventListener('click',()=>analyticsEvent('pro_interest',{placement:'pricing'})));

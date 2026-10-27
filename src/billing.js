@@ -4,8 +4,6 @@ async function hash(s){return hex(await crypto.subtle.digest('SHA-256',new TextE
 export function initBilling(config,api,getToken,onLinked){
   let nonce=null,ready=false,paymentReady=false,linked=false,epoch=0;
   function render(){
-    $('#pro-label').textContent=paymentReady?'PRO':'СКОРО';
-    $('#pro-caption').textContent=paymentReady?'Подтверждение Telegram и оплата — в личном кабинете.':'Оплата откроется после подключения Tribute.';
     $('#billing-status').textContent=!ready?'Подключение оплаты завершается.':linked?(paymentReady?'Telegram подтверждён. Оплачивай из этого же Telegram-аккаунта.':'Telegram подтверждён. Подключение оплаты завершается.'):'Подтверди Telegram, чтобы оплата активировала Pro именно в твоём аккаунте.';
     $('#link-telegram').hidden=!ready||linked;$('#checkout-pro').hidden=!paymentReady||!linked;
     if(paymentReady&&linked)$('#checkout-pro').href=config.tributeUrl;

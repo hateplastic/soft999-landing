@@ -1,3 +1,15 @@
+# Landing update — 27 October 2026
+
+The landing now explains Telegram/X features, first-run requirements, Free/Pro differences and Windows-only installation. Support is https://t.me/mixininparadise. Client binaries and functionality were not changed.
+
+Contact configuration: `src/config.js` contains `supportUrl` and `socialLinks`. Add social destinations as `{ "label": "Channel name", "url": "https://..." }`. Only valid HTTPS links render; an empty list leaves no placeholder block. The support handle shown in `src/index.html` should also be updated when changing the contact.
+
+New page layout: `src/redesign.css`. All new public copy is translated in `src/i18n.js`. Locale switching retains original text per node, avoiding ambiguous reverse translation. Public Pro copy does not depend on an anonymous account's billing state; actual checkout checks in the account remain in place.
+
+Validation: check/build passed; 9 billing tests passed; browser checks covered RU/UK/EN, 320/390/768/1024/1440px layouts, mobile menu, clipboard link, module preview tabs, account dialog and a mocked download. Repeated language switching preserves Pro and the checkout gate. No live registration, payment or messaging was performed. Demo events remain labelled as examples.
+
+---
+
 # Soft 99.9 — сайт и кабинет
 
 Сайт: https://soft999.app/. GitHub main автоматически развёртывается в Vercel. Веб-сборка содержит только src/: модули Telegram/X, Python и пользовательские данные не попадают на хостинг.
