@@ -152,3 +152,5 @@ Object.assign(dictionaries.en,{"Безлимитное число аккаунт
 
 Object.assign(dictionaries.uk,{"Free: 1 аккаунт Telegram + 1 X.":"Free: 1 акаунт Telegram + 1 X.","Pro: безлимитное число аккаунтов":"Pro: необмежена кількість акаунтів","без доплаты за каждый.":"без доплати за кожен."});
 Object.assign(dictionaries.en,{"Free: 1 аккаунт Telegram + 1 X.":"Free: 1 Telegram + 1 X account.","Pro: безлимитное число аккаунтов":"Pro: unlimited connected accounts","без доплаты за каждый.":"with no fee per account."});
+Object.assign(dictionaries.en, {'На странице доступно интерактивное демо с тестовыми данными. Подключение аккаунтов и отправка выполняются в установленном клиенте.':'An interactive demo with sample data is available on this page. Account connections and sending run in the installed client.'});
+Object.assign(dictionaries.uk, {'На странице доступно интерактивное демо с тестовыми данными. Подключение аккаунтов и отправка выполняются в установленном клиенте.':'На сторінці доступне інтерактивне демо з тестовими даними. Підключення акаунтів і надсилання виконуються у встановленому клієнті.'});

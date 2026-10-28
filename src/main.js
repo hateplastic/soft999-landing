@@ -1,3 +1,4 @@
+import { initDemo } from './demo.js';
 import { config } from './config.js';
 import { initAccount } from './account.js';
 import { initLocale } from './i18n.js';
@@ -30,13 +31,7 @@ $$('[data-close]').forEach(b => b.addEventListener('click', () => document.getEl
 $$('dialog').forEach(d => d.addEventListener('click', e => { if(e.target !== d) return; const r=d.getBoundingClientRect(); if(e.clientX<r.left || e.clientX>r.right || e.clientY<r.top || e.clientY>r.bottom) d.close(); }));
 $('#menu-toggle').addEventListener('click', () => { const open=$('#nav-links').classList.toggle('open'); $('#menu-toggle').setAttribute('aria-expanded', String(open)); $('#menu-toggle').setAttribute('aria-label', open?'Закрыть меню':'Открыть меню'); });
 $$('#nav-links a').forEach(a => a.addEventListener('click', () => { $('#nav-links').classList.remove('open'); $('#menu-toggle').setAttribute('aria-expanded','false'); }));
-const screenTabs=$$('.product-tabs [data-image]');
-const screenImage=$('#client-shot');
-const screenLink=$('#client-shot-link');
-function showScreen(index,focus=false){const at=(index+screenTabs.length)%screenTabs.length;const tab=screenTabs[at];if(!tab)return;screenImage.src=tab.dataset.image;screenImage.alt=tab.getAttribute('aria-label')||tab.textContent.trim();screenLink.href=tab.dataset.image;screenLink.setAttribute('aria-label',document.documentElement.lang==='en'?'Open full-size screenshot in a new tab':document.documentElement.lang==='uk'?'Відкрити повнорозмірний знімок у новій вкладці':'Открыть полноразмерный снимок в новой вкладке');screenTabs.forEach((item,i)=>{const active=i===at;item.setAttribute('aria-selected',String(active));item.tabIndex=active?0:-1;});if(focus)tab.focus();}
-screenTabs.forEach((tab,index)=>tab.addEventListener('click',()=>showScreen(index)));
-$('.product-tabs').addEventListener('keydown',event=>{const at=screenTabs.indexOf(event.target.closest('[data-image]'));if(at<0)return;let next;if(event.key==='ArrowRight')next=(at+1)%screenTabs.length;else if(event.key==='ArrowLeft')next=(at+screenTabs.length-1)%screenTabs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=screenTabs.length-1;else return;event.preventDefault();showScreen(next,true);});
-$('#language-select')?.addEventListener('change',()=>{const active=screenTabs.findIndex(tab=>tab.getAttribute('aria-selected')==='true');if(active>=0)showScreen(active);});
+initDemo();
 if ('IntersectionObserver' in window) {
   document.documentElement.classList.add('js-motion');
   const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in-view');observer.unobserve(e.target);}}),{threshold:.08});
@@ -60,7 +55,7 @@ if(purchase){$('#pro-label').textContent='PRO';$('#pro-caption').textContent='П
 $$('[data-pro]').forEach(b=>b.addEventListener('click',()=>document.querySelector('[data-account]').click()));
 $$('[data-info]').forEach(b=>b.addEventListener('click',()=>{
   if(b.dataset.info==='privacy')info('\u0422\u0432\u043e\u0438 \u0434\u0430\u043d\u043d\u044b\u0435', ['\u0414\u043b\u044f \u0443\u0447\u0451\u0442\u043d\u043e\u0439 \u0437\u0430\u043f\u0438\u0441\u0438 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u044e\u0442\u0441\u044f email \u0438 \u043f\u0430\u0440\u043e\u043b\u044c. Supabase \u0445\u0440\u0430\u043d\u0438\u0442 \u0442\u0430\u0440\u0438\u0444 \u0438 \u043f\u0440\u0438\u0432\u044f\u0437\u043a\u0443 \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u0430.', '\u0421\u0430\u0439\u0442 \u043d\u0435 \u043f\u043e\u043b\u0443\u0447\u0430\u0435\u0442 \u0441\u0435\u0441\u0441\u0438\u0438 Telegram, cookies X \u0438 \u0441\u043e\u0434\u0435\u0440\u0436\u0438\u043c\u043e\u0435 \u043b\u043e\u043a\u0430\u043b\u044c\u043d\u044b\u0445 \u043f\u0440\u043e\u0444\u0438\u043b\u0435\u0439.', 'Vercel Web Analytics \u0441\u0447\u0438\u0442\u0430\u0435\u0442 \u043e\u0431\u0435\u0437\u043b\u0438\u0447\u0435\u043d\u043d\u044b\u0435 \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440\u044b \u0441\u0442\u0440\u0430\u043d\u0438\u0446 \u0431\u0435\u0437 cookies. Google Analytics \u0438 \u0441\u043e\u0431\u044b\u0442\u0438\u044f \u0441\u043a\u0430\u0447\u0438\u0432\u0430\u043d\u0438\u044f, \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438 \u0438 \u043f\u0435\u0440\u0435\u0445\u043e\u0434\u0430 \u043a \u043e\u043f\u043b\u0430\u0442\u0435 \u0432\u043a\u043b\u044e\u0447\u0430\u044e\u0442\u0441\u044f \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u043e\u0441\u043b\u0435 \u0442\u0432\u043e\u0435\u0433\u043e \u0441\u043e\u0433\u043b\u0430\u0441\u0438\u044f. Email \u0438 \u043f\u0430\u0440\u043e\u043b\u044c \u0432 \u0430\u043d\u0430\u043b\u0438\u0442\u0438\u043a\u0443 \u043d\u0435 \u043f\u0435\u0440\u0435\u0434\u0430\u044e\u0442\u0441\u044f.']);
-  else info('О текущей версии',[`Soft 99.9 · ${config.version} · ${config.releaseLabel}.`,'Установи приложение и открой ярлык Soft 99.9. Панель работает в браузере на твоём компьютере. Python, Node.js и Chromium входят в комплект.','На странице показаны полнооконные снимки текущего клиента 0.4.3. Они сделаны на чистой локальной установке без подключённых Telegram- и X-аккаунтов.']);
+  else info('О текущей версии',[`Soft 99.9 · ${config.version} · ${config.releaseLabel}.`,'Установи приложение и открой ярлык Soft 99.9. Панель работает в браузере на твоём компьютере. Python, Node.js и Chromium входят в комплект.','На странице доступно интерактивное демо с тестовыми данными. Подключение аккаунтов и отправка выполняются в установленном клиенте.']);
 }));
 initAccount(config);
 
