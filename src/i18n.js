@@ -179,3 +179,27 @@ Object.assign(dictionaries.en,{"Это Windows-программа с отдел�
 
 Object.assign(dictionaries.en, {"Скачивание на Windows":"Windows download","Этот portable ZIP предназначен для Windows 10 / 11 x64. Сохрани ссылку на сайт и открой её на компьютере.":"This portable ZIP is for Windows 10 / 11 x64. Save the website link and open it on your computer.","Скачать ZIP для Windows":"Download the Windows ZIP"});
 Object.assign(dictionaries.uk, {"Скачивание на Windows":"Завантаження для Windows","Этот portable ZIP предназначен для Windows 10 / 11 x64. Сохрани ссылку на сайт и открой её на компьютере.":"Цей portable ZIP призначений для Windows 10 / 11 x64. Збережи посилання на сайт і відкрий його на комп’ютері.","Скачать ZIP для Windows":"Завантажити ZIP для Windows"});
+
+
+Object.assign(dictionaries.en, {
+  'Windows x64 · установщик EXE':'Windows x64 · EXE installer',
+  'Скачай и установи клиент':'Download and install the app',
+  'Windows 10 / 11 x64. Запусти Soft-99.9-Setup-0.5.2-x64.exe и следуй шагам установщика. Ярлыки появятся в меню «Пуск» и на рабочем столе.':'Windows 10 / 11 x64. Run Soft-99.9-Setup-0.5.2-x64.exe and follow the setup steps. Shortcuts will appear on your desktop and in Start.',
+  'Нет. Установщик сам разместит Python, Node.js, Chromium и зависимости. Распаковывать ZIP вручную не нужно; профили и данные остаются в отдельной папке.':'No. The installer includes Python, Node.js, Chromium and required dependencies. You do not need to extract a ZIP manually; profiles and data stay in a separate folder.',
+  'Установка на Windows':'Windows setup',
+  'Этот установщик предназначен для Windows 10 / 11 x64. Открой страницу на компьютере, чтобы скачать EXE.':'This installer is for Windows 10 / 11 x64. Open the website on your PC to download the EXE.',
+  'Установщик сам распакует клиент и создаст ярлыки. Вручную работать с ZIP не нужно.':'The installer unpacks the client and creates shortcuts. There is no ZIP to handle manually.',
+  'Открыть сайт на компьютере':'Open the website on your PC',
+  'Запусти установщик Soft 99.9 и следуй шагам. Он создаст ярлыки для запуска и остановки; Python, Node.js и Chromium включены. Если WebView2 отсутствует, он установится при первом запуске; для этого нужен интернет.':'Run Soft 99.9 Setup and follow the steps. It creates launch and stop shortcuts; Python, Node.js and Chromium are included. If WebView2 is missing, it installs on first launch; this requires internet access.'
+});
+Object.assign(dictionaries.uk, {
+  'Windows x64 · установщик EXE':'Windows x64 · інсталятор EXE',
+  'Скачай и установи клиент':'Завантаж і встанови клієнт',
+  'Windows 10 / 11 x64. Запусти Soft-99.9-Setup-0.5.2-x64.exe и следуй шагам установщика. Ярлыки появятся в меню «Пуск» и на рабочем столе.':'Windows 10 / 11 x64. Запусти Soft-99.9-Setup-0.5.2-x64.exe та виконай кроки інсталятора. Ярлики з’являться на робочому столі та в меню «Пуск».',
+  'Нет. Установщик сам разместит Python, Node.js, Chromium и зависимости. Распаковывать ZIP вручную не нужно; профили и данные остаются в отдельной папке.':'Ні. Інсталятор сам встановить Python, Node.js, Chromium і потрібні залежності. Розпаковувати ZIP вручну не потрібно; профілі та дані залишаються в окремій папці.',
+  'Установка на Windows':'Встановлення для Windows',
+  'Этот установщик предназначен для Windows 10 / 11 x64. Открой страницу на компьютере, чтобы скачать EXE.':'Цей інсталятор призначений для Windows 10 / 11 x64. Відкрий сторінку на комп’ютері, щоб завантажити EXE.',
+  'Установщик сам распакует клиент и создаст ярлыки. Вручную работать с ZIP не нужно.':'Інсталятор сам розпакує клієнт і створить ярлики. ZIP не потрібно розпаковувати вручну.',
+  'Открыть сайт на компьютере':'Відкрити сайт на комп’ютері',
+  'Запусти установщик Soft 99.9 и следуй шагам. Он создаст ярлыки для запуска и остановки; Python, Node.js и Chromium включены. Если WebView2 отсутствует, он установится при первом запуске; для этого нужен интернет.':'Запусти інсталятор Soft 99.9 і виконай кроки. Він створить ярлики для запуску й зупинки; Python, Node.js і Chromium уже додано. Якщо WebView2 відсутній, його буде встановлено під час першого запуску; для цього потрібен інтернет.'
+});
