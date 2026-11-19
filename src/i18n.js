@@ -1,5 +1,14 @@
 const dictionaries = {
   en: {
+  "Продолжить с Google": "Continue with Google",
+  "или по email": "or continue with email",
+  "Soft 99.9 получает подтверждённый email и базовые данные профиля. Пароль Google и доступ к Gmail/Drive не запрашиваются.": "Soft 99.9 only receives your verified email and basic profile details. It never gets your Google password or asks for Gmail or Drive access.",
+  "Для безопасного входа через Google нужен современный браузер.": "A modern browser is required for secure Google sign-in.",
+  "Открываем защищённый вход Google…": "Opening secure Google sign-in…",
+  "Завершаем вход через Google…": "Finishing Google sign-in…",
+  "Ссылка входа устарела. Начни вход через Google ещё раз.": "This sign-in link expired. Start Google sign-in again.",
+  "Вход через Google отменён или не завершён. Попробуй ещё раз.": "Google sign-in was cancelled or did not finish. Try again.",
+
     'Soft 99.9 — Твоя орбита. Твой контроль.':'Soft 99.9 — Your orbit. Your control.', 'Перейти к содержимому':'Skip to content',
     'Интерфейс':'Workspace', 'В работе':'In action', 'Тарифы':'Plans', 'Вопросы':'FAQ', 'Войти':'Sign in', 'Скачать':'Download',
     'Твой ритм.':'Your rhythm.', 'Твоя':'Your', 'орбита.':'orbit.', 'Два модуля. Одно пространство.':'Two modules. One workspace.',
@@ -22,6 +31,15 @@ const dictionaries = {
     'Ты вышел из кабинета.':'You have signed out.', 'Скрыть':'Hide', 'Отправить ссылку ↗':'Send reset link ↗', 'Сохранить пароль ↗':'Save password ↗', 'Отправить письмо ↗':'Send email ↗', 'Восстановить доступ.':'Recover access.', 'Пришлём ссылку для установки нового пароля.':'We’ll send a link to reset your password.', 'Подтверди email.':'Confirm your email.', 'Запросить новое письмо подтверждения.':'Request a new confirmation email.', 'Новый пароль.':'New password.', 'Задай новый пароль для учётной записи Soft 99.9.':'Choose a new password for your Soft 99.9 account.', 'Пароли не совпадают.':'Passwords do not match.', 'Подключаемся…':'Connecting…', 'Проверь почту. Если регистрация доступна для этого адреса, придёт письмо с дальнейшими шагами.':'Check your inbox. If sign-up is available for this address, you’ll receive an email with next steps.', 'Если для этого адреса доступно письмо, оно скоро придёт. Проверь также папку «Спам».':'If an email is available for this address, it will arrive shortly. Check your spam folder too.', 'Пароль изменён. Теперь можно войти.':'Password updated. You can now sign in.', 'Ссылка недействительна или устарела. Запроси новое письмо.':'This link is invalid or expired. Request a new email.', 'Проверяем ссылку…':'Checking the link…', 'Почта подтверждена. Войди с email и паролем.':'Email confirmed. Sign in with your email and password.', 'Не удалось проверить ссылку. Попробуй войти или запроси новое письмо.':'Could not verify the link. Try signing in or request another email.', 'Не удалось начать привязку. Попробуй войти заново.':'Could not start linking. Try signing in again.', 'Открой бота, нажми «Запустить» и введи полученный код здесь. Ссылка действует 10 минут.':'Open the bot, tap “Start” and enter the code here. The link expires in 10 minutes.', 'Неверный код. Проверь сообщение бота.':'Incorrect code. Check the bot message.', 'Telegram подтверждён.':'Telegram confirmed.', 'Не удалось подтвердить код. Проверь соединение и повтори.':'Could not confirm the code. Check your connection and try again.', 'Подключение оплаты завершается.':'Payment setup is being completed.', 'Подтверди Telegram, чтобы оплата активировала Pro именно в твоём аккаунте.':'Confirm Telegram so your payment activates Pro on your account.', 'Telegram подтверждён. Оплачивай из этого же Telegram-аккаунта.':'Telegram confirmed. Pay using this same Telegram account.', 'Telegram подтверждён. Подключение оплаты завершается.':'Telegram confirmed. Payment setup is being completed.', 'Подключение оплаты завершается.':'Payment setup is being completed.', 'Оплата откроется после подключения Tribute.':'Payments will be available once Tribute is connected.', 'Подожди 30 секунд перед новым запросом.':'Wait 30 seconds before trying again.', 'Привязка уже существует или недоступна. Обнови статус.':'A link already exists or is unavailable. Refresh the status.', 'Ссылка истекла или Telegram уже привязан. Начни привязку заново.':'The link expired or Telegram is already connected. Start linking again.', 'Не удалось подтвердить код. Проверь соединение и повтори.':'Could not confirm the code. Check your connection and try again.'
   },
   uk: {
+  "Продолжить с Google": "Продовжити з Google",
+  "или по email": "або через email",
+  "Soft 99.9 получает подтверждённый email и базовые данные профиля. Пароль Google и доступ к Gmail/Drive не запрашиваются.": "Soft 99.9 отримує підтверджену email-адресу та базові дані профілю. Ми не отримуємо пароль Google і не запитуємо доступ до Gmail чи Drive.",
+  "Для безопасного входа через Google нужен современный браузер.": "Для захищеного Google-входу потрібен сучасний браузер.",
+  "Открываем защищённый вход Google…": "Відкриваємо захищений Google-вхід...",
+  "Завершаем вход через Google…": "Завершуємо Google-вхід...",
+  "Ссылка входа устарела. Начни вход через Google ещё раз.": "Термін дії посилання минув. Увійди через Google ще раз.",
+  "Вход через Google отменён или не завершён. Попробуй ещё раз.": "Вхід Google скасовано або не завершено. Спробуй ще раз.",
+
     'Soft 99.9 — Твоя орбита. Твой контроль.':'Soft 99.9 — Твоя орбіта. Твій контроль.', 'Перейти к содержимому':'Перейти до вмісту',
     'Интерфейс':'Інтерфейс', 'В работе':'У роботі', 'Тарифы':'Тарифи', 'Вопросы':'Запитання', 'Войти':'Увійти', 'Скачать':'Завантажити',
     'Твой ритм.':'Твій ритм.', 'Твоя':'Твоя', 'орбита.':'орбіта.', 'Два модуля. Одно пространство.':'Два модулі. Один простір.',

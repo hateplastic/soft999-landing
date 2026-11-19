@@ -22,3 +22,7 @@ html{overflow-x:clip}@media(max-width:600px){.hero{min-height:850px;padding-bott
 @media(max-width:600px){.screenshot-gallery .product-tabs{padding:7px;gap:3px}.screenshot-gallery .product-tabs>button{padding:9px 10px;gap:7px;font-size:9px}.screenshot-gallery .preview-foot{display:block;padding:12px;font-size:8px}.screenshot-gallery .preview-foot span{display:block}.screenshot-gallery .preview-foot span+span{text-align:left;margin-top:4px}.capability-section .capability-grid{grid-template-columns:1fr}.capability-card{padding:22px}.capability-card h3{margin:20px 0 10px;font-size:19px}}
 
 .screenshot-open{display:block;cursor:zoom-in}.screenshot-open:focus-visible{outline:2px solid var(--yellow);outline-offset:-3px}
+
+.google.btn{position:relative;min-height:48px;padding:12px 16px;gap:10px;background:#f5f6f3;color:#171a14;border-color:#d8dbd3;font-size:13px}.google.btn:hover{background:#fff;box-shadow:0 6px 24px #0005}.google-mark{display:grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#fff;color:#4285f4;font:bold 16px Arial,sans-serif}.auth-divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--dim);font-size:11px}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:var(--line);flex:1}
+
+.google-note{margin:10px 0 0;color:var(--muted);font-size:11px;line-height:1.65}

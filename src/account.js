@@ -6,6 +6,14 @@ export function initAccount(config) {
   let mode='login', session=null, recoveryToken=null, busy=false, generation=0;
   const redirect=location.origin+location.pathname;
   const billing=initBilling(config,api,token,profile);
+  function base64url(bytes){return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+  async function startGoogle(){
+    if(busy)return;
+    if(!crypto?.subtle){message('Для безопасного входа через Google нужен современный браузер.',true);return;}
+    busy=true;$('#google-signin').disabled=true;message('Открываем защищённый вход Google…');
+    try{const verifier=base64url(crypto.getRandomValues(new Uint8Array(32)));const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier));sessionStorage.setItem('soft999.google.verifier',verifier);sessionStorage.setItem('soft999.google.intent',mode==='signup'?'signup':'login');location.assign(api.oauthUrl('google',redirect,base64url(new Uint8Array(digest))));}
+    catch(e){sessionStorage.removeItem('soft999.google.verifier');sessionStorage.removeItem('soft999.google.intent');message(authError(e),true);busy=false;$('#google-signin').disabled=false;}
+  }
   function message(text,error=false){$('#auth-message').textContent=text;$('#auth-message').classList.toggle('error',error);}
   function switchMode(next){
     mode=next;message('');const password=['login','signup','reset'].includes(mode), email=mode!=='reset';
@@ -14,7 +22,7 @@ export function initAccount(config) {
     $('#confirm-label').hidden=!['signup','reset'].includes(mode);fields.confirm.disabled=$('#confirm-label').hidden;fields.confirm.required=!fields.confirm.disabled;fields.confirm.value='';
     const copy={login:['С возвращением.','Тот же аккаунт, что и в приложении.','Войти ↗'],signup:['Твоё пространство.','Создай аккаунт и начни с Free. Пароль — минимум 10 символов.','Создать аккаунт ↗'],recover:['Восстановить доступ.','Пришлём ссылку для установки нового пароля.','Отправить ссылку ↗'],resend:['Подтверди email.','Запросить новое письмо подтверждения.','Отправить письмо ↗'],reset:['Новый пароль.','Задай новый пароль для учётной записи Soft 99.9.','Сохранить пароль ↗']}[mode];
     $('#account-title').textContent=copy[0];$('#auth-description').textContent=copy[1];$('#auth-submit').textContent=copy[2];
-    $$('[data-auth]').forEach(b=>b.hidden=mode==='login'?b.dataset.auth==='login':b.dataset.auth!=='login');
+    $$('[data-auth]').forEach(b=>b.hidden=mode==='login'?b.dataset.auth==='login':b.dataset.auth!=='login');$('#google-signin').hidden=!['login','signup'].includes(mode);
     $('#auth-view').hidden=false;$('#profile-view').hidden=true;dialog.setAttribute('aria-labelledby','account-title');
   }
   function setSession(data){session={...data,expires_at:data.expires_at||Math.floor(Date.now()/1000)+(data.expires_in||3600)};generation++;$$('[data-account]').forEach(b=>b.textContent='Мой кабинет ↗');}
@@ -36,6 +44,7 @@ export function initAccount(config) {
   }
   $$('[data-account]').forEach(b=>b.addEventListener('click',()=>{if(!dialog.open)dialog.showModal();if(session)profile();else switchMode(recoveryToken?'reset':'login');}));
   $$('[data-auth]').forEach(b=>b.addEventListener('click',()=>{if(!busy)switchMode(b.dataset.auth);}));
+  $('#google-signin').addEventListener('click',startGoogle);
   $('#password-visibility').addEventListener('click',()=>{const shown=fields.password.type==='password';fields.password.type=shown?'text':'password';$('#password-visibility').textContent=shown?'Скрыть':'Показать';$('#password-visibility').setAttribute('aria-label',shown?'Скрыть пароль':'Показать пароль');});
   form.addEventListener('submit',async e=>{
     e.preventDefault();if(busy||!form.reportValidity())return;
@@ -54,6 +63,9 @@ export function initAccount(config) {
   $('#signout').addEventListener('click',async()=>{const access=session?.access_token;clearSession();switchMode('login');message('Ты вышел из кабинета.');if(access){try{await api.logout(access);}catch{message('Локальный вход завершён. Сервер не подтвердил отзыв сессии; она истечёт автоматически.');}}});
   dialog.addEventListener('close',()=>{fields.password.value='';fields.confirm.value='';fields.password.type='password';$('#password-visibility').textContent='Показать';});
   if(location.hash==='#account'){dialog.showModal();switchMode('login');}
+  const oauthParams=new URLSearchParams(location.search),oauthCode=oauthParams.get('code');
+  if(oauthCode){history.replaceState(null,'',location.pathname+location.hash);dialog.showModal();switchMode('login');message('Завершаем вход через Google…');const verifier=sessionStorage.getItem('soft999.google.verifier'),intent=sessionStorage.getItem('soft999.google.intent');sessionStorage.removeItem('soft999.google.verifier');sessionStorage.removeItem('soft999.google.intent');if(!verifier){message('Ссылка входа устарела. Начни вход через Google ещё раз.',true);}else{api.exchangeOAuthCode(oauthCode,verifier).then(async data=>{setSession(data);if(intent==='signup')window.softAnalytics?.('sign_up',{method:'google'});await profile();}).catch(e=>message(authError(e),true));}}
+  else if(oauthParams.has('error')||oauthParams.has('error_code')){history.replaceState(null,'',location.pathname+location.hash);sessionStorage.removeItem('soft999.google.verifier');sessionStorage.removeItem('soft999.google.intent');dialog.showModal();switchMode('login');message('Вход через Google отменён или не завершён. Попробуй ещё раз.',true);}
   const hash=new URLSearchParams(location.hash.slice(1));
   if(hash.has('access_token')||hash.has('error')||hash.has('error_description')){
     history.replaceState(null,'',location.pathname+location.search);

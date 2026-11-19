@@ -12,6 +12,8 @@ export function createAuthApi(config, fetcher = fetch) {
   return {
     login:(email,password)=>request('/auth/v1/token?grant_type=password',{body:{email,password}}),
     signup:(email,password,redirect)=>request(`/auth/v1/signup?redirect_to=${encodeURIComponent(redirect)}`,{body:{email,password}}),
+    oauthUrl:(provider,redirect,challenge)=>{const url=new URL('/auth/v1/authorize',base);url.searchParams.set('provider',provider);url.searchParams.set('redirect_to',redirect);url.searchParams.set('flow_type','pkce');url.searchParams.set('code_challenge',challenge);url.searchParams.set('code_challenge_method','s256');return url.href;},
+    exchangeOAuthCode:(auth_code,code_verifier)=>request('/auth/v1/token?grant_type=pkce',{body:{auth_code,code_verifier}}),
     recover:(email,redirect)=>request(`/auth/v1/recover?redirect_to=${encodeURIComponent(redirect)}`,{body:{email}}),
     resend:(email,redirect)=>request(`/auth/v1/resend?redirect_to=${encodeURIComponent(redirect)}`,{body:{email,type:'signup'}}),
     refresh:refresh_token=>request('/auth/v1/token?grant_type=refresh_token',{body:{refresh_token}}),
