@@ -16,9 +16,11 @@ export function translateHtml(html, lang) {
     return value === undefined ? null : text.match(/^\s*/)[0] + value + text.match(/\s*$/)[0];
   };
   let out = '', last = 0;
-  const pushText = raw => { const value = t(raw); out += value === null ? raw : escText(value); };
+  let frozen = false; // text directly inside a data-no-i18n element
+  const pushText = raw => { const value = frozen ? null : t(raw); out += value === null ? raw : escText(value); };
   for (const m of html.matchAll(TAG)) {
     pushText(html.slice(last, m.index)); last = m.index + m[0].length;
+    frozen = /\sdata-no-i18n\b/.test(m[0]);
     out += /^<(?:!|script\b|style\b)/i.test(m[0]) ? m[0] : m[0].replace(/\s(placeholder|aria-label|title|content|alt)="([^"]*)"/g, (all, name, raw) => {
       const value = t(raw); return value === null ? all : ` ${name}="${escAttr(value)}"`;
     });
