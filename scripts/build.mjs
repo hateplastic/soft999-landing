@@ -4,7 +4,7 @@ import path from 'node:path';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const source=path.join(root,'src'), out=path.join(root,'dist');
 await mkdir(out,{recursive:true});
-const allowed=new Set(['.html','.css','.js','.svg','.png','.webp','.jpg','.woff2']);
+const allowed=new Set(['.html','.css','.js','.svg','.png','.webp','.jpg','.woff2','.mp4']);
 async function copy(dir,relative=''){
   for(const entry of await readdir(dir,{withFileTypes:true})){
     if(entry.isSymbolicLink())throw new Error('Symlinks are not included in public builds');
