@@ -1,4 +1,3 @@
-import { initDemo } from './demo.js';
 import { config } from './config.js';
 import { initAccount } from './account.js';
 import { initLocale } from './i18n.js';
@@ -31,7 +30,6 @@ $$('[data-close]').forEach(b => b.addEventListener('click', () => document.getEl
 $$('dialog').forEach(d => d.addEventListener('click', e => { if(e.target !== d) return; const r=d.getBoundingClientRect(); if(e.clientX<r.left || e.clientX>r.right || e.clientY<r.top || e.clientY>r.bottom) d.close(); }));
 $('#menu-toggle').addEventListener('click', () => { const open=$('#nav-links').classList.toggle('open'); $('#menu-toggle').setAttribute('aria-expanded', String(open)); $('#menu-toggle').setAttribute('aria-label', open?'Закрыть меню':'Открыть меню'); });
 $$('#nav-links a').forEach(a => a.addEventListener('click', () => { $('#nav-links').classList.remove('open'); $('#menu-toggle').setAttribute('aria-expanded','false'); }));
-initDemo();
 if ('IntersectionObserver' in window) {
   document.documentElement.classList.add('js-motion');
   const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in-view');observer.unobserve(e.target);}}),{threshold:.08});
