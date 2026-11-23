@@ -1,4 +1,4 @@
-const dictionaries = {
+export const dictionaries = {
   en: {
   "Продолжить с Google": "Continue with Google",
   "или по email": "or continue with email",
@@ -132,10 +132,32 @@ function preferredLanguage() {
   }
   return 'en';
 }
+const languagePaths = { ru: '/', uk: '/uk/', en: '/en/' };
+const pathLanguage = () => location.pathname.match(/^\/(uk|en)(?:\/|$)/)?.[1] || 'ru';
+function savedLanguage() { try { const saved = localStorage.getItem(languageKey); return validLanguages.includes(saved) ? saved : null; } catch { return null; } }
+function saveLanguage(language) { try { localStorage.setItem(languageKey, language); } catch {} }
+// The root page is Russian. A visitor who chose another language goes to its own address;
+// sign-in and email links always return to the root, so query and fragment are preserved.
+export function redirectToSavedLanguage() {
+  const saved = savedLanguage();
+  if (pathLanguage() !== 'ru' || !saved || saved === 'ru') return false;
+  location.replace(languagePaths[saved] + location.search + location.hash);
+  return true;
+}
+function suggestLanguage() {
+  const preferred = preferredLanguage();
+  if (pathLanguage() !== 'ru' || savedLanguage() || preferred === 'ru') return;
+  const [text, action, close] = { uk: ['Сайт доступний українською.', 'Перейти', 'Закрити'], en: ['This site is available in English.', 'Switch', 'Close'] }[preferred];
+  const bar = document.createElement('div'); bar.className = 'language-suggestion container'; bar.lang = preferred; bar.setAttribute('data-no-i18n', '');
+  const label = document.createElement('span'); label.textContent = text;
+  const link = document.createElement('a'); link.href = languagePaths[preferred]; link.textContent = action; link.addEventListener('click', () => saveLanguage(preferred));
+  const dismiss = document.createElement('button'); dismiss.type = 'button'; dismiss.textContent = '×'; dismiss.setAttribute('aria-label', close);
+  dismiss.addEventListener('click', () => { saveLanguage('ru'); bar.remove(); });
+  bar.append(label, link, dismiss); document.querySelector('#main')?.prepend(bar);
+}
 export function initLocale() {
-  let saved = null;
-  try { saved = localStorage.getItem(languageKey); } catch {}
-  let language = validLanguages.includes(saved) ? saved : preferredLanguage();
+  let language = pathLanguage();
+  if (language !== 'ru') saveLanguage(language);
   const picker = document.querySelector('#language-select');
   const originalTitle = document.title;
   const setLanguage = (next, persist = true) => {
@@ -148,8 +170,10 @@ export function initLocale() {
     if(picker) picker.value = next;
     if(persist){try{localStorage.setItem(languageKey,next);}catch{}}
   };
-  picker?.addEventListener('change',()=>setLanguage(picker.value));
+  picker?.addEventListener('change',()=>{if(!validLanguages.includes(picker.value))return;saveLanguage(picker.value);location.assign(languagePaths[picker.value]+location.hash);});
+  for(const link of document.querySelectorAll('[data-lang-link]'))link.addEventListener('click',()=>saveLanguage(link.dataset.langLink));
   setLanguage(language,false);
+  suggestLanguage();
   const observer = new MutationObserver(records=>{
     for(const record of records){
       if(record.type === 'characterData') translateNode(record.target,language);
@@ -227,3 +251,5 @@ Object.assign(dictionaries.uk,{"Так выглядит внутри.":"Так �
 Object.assign(dictionaries.en,{"Так выглядит внутри.":"This is what it looks like."});
 Object.assign(dictionaries.uk,{"VirusTotal: 0 срабатываний из 53": "VirusTotal: 0 спрацювань із 53", "отчёт от 23.11.2026": "звіт від 23.11.2026", "из 53": "із 53", "Ни один из 53 антивирусов не отметил файл как опасный.": "Жоден із 53 антивірусів не позначив файл як небезпечний.", "Установщик 0.5.4, отчёт от 23.11.2026. Среди проверивших — Microsoft, Malwarebytes, Sophos и DrWeb.": "Інсталятор 0.5.4, звіт від 23.11.2026. Серед тих, хто перевірив, — Microsoft, Malwarebytes, Sophos і DrWeb.", "Ещё 13 движков не уложились в отведённое время, 5 не поддерживают такой тип файла, 2 не дали ответа. Отчёт — снимок на дату, а не гарантия: результат можно перепроверить.": "Ще 13 рушіїв не вклалися у відведений час, 5 не підтримують такий тип файлу, 2 не дали відповіді. Звіт — знімок на дату, а не гарантія: результат можна перевірити ще раз.", "Открыть отчёт VirusTotal ↗": "Відкрити звіт VirusTotal ↗", "Перепроверь сам.": "Перевір ще раз сам.", "Отчёт VirusTotal по текущему установщику — в разделе «Проверь файл сам». Там же SHA-256: сравни его со своим файлом. Можно загрузить файл и проверить заново. Если антивирус что-то нашёл, пришли отчёт в поддержку.": "Звіт VirusTotal щодо поточного інсталятора — у розділі «Перевір файл сам». Там само SHA-256: порівняй його зі своїм файлом. Можна завантажити файл і перевірити знову. Якщо антивірус щось знайшов, надішли звіт у підтримку."});
 Object.assign(dictionaries.en,{"VirusTotal: 0 срабатываний из 53": "VirusTotal: 0 of 53 detections", "отчёт от 23.11.2026": "report of 23 Nov 2026", "из 53": "of 53", "Ни один из 53 антивирусов не отметил файл как опасный.": "None of 53 antivirus engines flagged the file.", "Установщик 0.5.4, отчёт от 23.11.2026. Среди проверивших — Microsoft, Malwarebytes, Sophos и DrWeb.": "Installer 0.5.4, report of 23 Nov 2026. The engines include Microsoft, Malwarebytes, Sophos and DrWeb.", "Ещё 13 движков не уложились в отведённое время, 5 не поддерживают такой тип файла, 2 не дали ответа. Отчёт — снимок на дату, а не гарантия: результат можно перепроверить.": "Another 13 engines timed out, 5 do not support this file type and 2 gave no result. The report is a snapshot, not a guarantee: you can check it again.", "Открыть отчёт VirusTotal ↗": "Open the VirusTotal report ↗", "Перепроверь сам.": "Check again yourself.", "Отчёт VirusTotal по текущему установщику — в разделе «Проверь файл сам». Там же SHA-256: сравни его со своим файлом. Можно загрузить файл и проверить заново. Если антивирус что-то нашёл, пришли отчёт в поддержку.": "The VirusTotal report for the current installer is in “Check the file yourself”. The SHA-256 is there too: compare it with your file. You can also upload the file and scan it again. If an antivirus flags it, send the report to support."});
+Object.assign(dictionaries.uk,{"Один аккаунт Telegram и один профиль X с основными функциями обоих модулей. Без карты и срока окончания. У Pro нет тарифного лимита на число подключённых аккаунтов. Одновременная нагрузка зависит от возможностей компьютера.": "Один акаунт Telegram і один профіль X з основними функціями обох модулів. Без картки та терміну завершення. У Pro немає тарифного ліміту на кількість підключених акаунтів. Одночасне навантаження залежить від можливостей комп’ютера.", "Главная навигация": "Головна навігація", "Soft 99.9 — главная": "Soft 99.9 — головна", "Открыть меню": "Відкрити меню", "Закрыть меню": "Закрити меню", "Приложение и данные на компьютере. В облаке — только учётная запись и доступ.": "Застосунок і дані на комп’ютері. У хмарі — лише обліковий запис і доступ.", "Комиссия Tribute оплачивается отдельно. Итоговая сумма указана при оплате. После оплаты нажми «Обновить статус».": "Комісія Tribute оплачується окремо. Підсумкову суму вказано під час оплати. Після оплати натисни «Оновити статус»."});
+Object.assign(dictionaries.en,{"Один аккаунт Telegram и один профиль X с основными функциями обоих модулей. Без карты и срока окончания. У Pro нет тарифного лимита на число подключённых аккаунтов. Одновременная нагрузка зависит от возможностей компьютера.": "One Telegram account and one X profile with the core features of both modules. No card, no expiry. Pro has no plan limit on connected accounts. Concurrent load depends on your computer.", "Главная навигация": "Main navigation", "Soft 99.9 — главная": "Soft 99.9 — home", "Открыть меню": "Open menu", "Закрыть меню": "Close menu", "Приложение и данные на компьютере. В облаке — только учётная запись и доступ.": "The app and data stay on your computer. Only the account and access are in the cloud."});

@@ -1,7 +1,9 @@
 import { config } from './config.js';
 import { initAccount } from './account.js';
-import { initLocale } from './i18n.js';
+import { initLocale, redirectToSavedLanguage } from './i18n.js';
 import { initMedia } from './media.js';
+// Stop here while the browser leaves: sign-in parameters must be handled once, on the final page.
+if (redirectToSavedLanguage()) await new Promise(() => {});
 initLocale();
 initMedia(config);
 const $ = s => document.querySelector(s);

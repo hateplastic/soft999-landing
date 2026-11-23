@@ -4,7 +4,7 @@ export function initAccount(config) {
   const api=createAuthApi(config), $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
   const dialog=$('#account-dialog'), form=$('#auth-form'), fields=form.elements;
   let mode='login', session=null, recoveryToken=null, busy=false, generation=0;
-  const redirect=location.origin+location.pathname;
+  const redirect=location.origin+'/';
   const billing=initBilling(config,api,token,profile);
   function base64url(bytes){return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
   async function startGoogle(){

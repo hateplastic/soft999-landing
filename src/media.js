@@ -7,10 +7,10 @@ export function initMedia({ version } = {}) {
     const lang = ['ru', 'uk', 'en'].includes(document.documentElement.lang) ? document.documentElement.lang : 'ru';
     for (const image of document.querySelectorAll('img[data-media]')) {
       const name = image.dataset.media;
-      set(image, 'src', `assets/media/${name}-${lang}.${name === 'hero' ? (reduced.matches ? 'jpg' : 'svg') : 'png'}`);
+      set(image, 'src', `/assets/media/${name}-${lang}.${name === 'hero' ? (reduced.matches ? 'jpg' : 'svg') : 'png'}`);
     }
-    for (const link of document.querySelectorAll('[data-media-link]')) set(link, 'href', `assets/media/ui-${link.dataset.mediaLink}-${lang}.png`);
-    if (video) { set(video, 'poster', `assets/media/explainer-${lang}.jpg`); set(video, 'src', `assets/media/explainer-${lang}.mp4`); }
+    for (const link of document.querySelectorAll('[data-media-link]')) set(link, 'href', `/assets/media/ui-${link.dataset.mediaLink}-${lang}.png`);
+    if (video) { set(video, 'poster', `/assets/media/explainer-${lang}.jpg`); set(video, 'src', `/assets/media/explainer-${lang}.mp4`); }
   };
   apply();
   new MutationObserver(apply).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
