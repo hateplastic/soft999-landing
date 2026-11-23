@@ -3,7 +3,7 @@ import { initAccount } from './account.js';
 import { initLocale } from './i18n.js';
 import { initMedia } from './media.js';
 initLocale();
-initMedia();
+initMedia(config);
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);

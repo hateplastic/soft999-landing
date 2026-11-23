@@ -1,5 +1,5 @@
 // Locale-specific visuals: hero animation, explainer video and client screenshots.
-export function initMedia() {
+export function initMedia({ version } = {}) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const video = document.querySelector('#explainer');
   const set = (element, name, value) => { if (element.getAttribute(name) !== value) element.setAttribute(name, value); };
@@ -23,6 +23,8 @@ export function initMedia() {
       else if (!entry.isIntersecting && !video.paused) video.pause();
     }, { threshold: .55 }).observe(video);
   }
+  // A scan result belongs to one exact build: hide it as soon as the version moves on.
+  for (const block of document.querySelectorAll('[data-check-version]')) block.hidden = block.dataset.checkVersion !== version;
   const button = document.querySelector('[data-copy-hash]');
   button?.addEventListener('click', async () => {
     const status = document.querySelector('#hash-status');
