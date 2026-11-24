@@ -18,7 +18,7 @@ export function initBilling(config,api,getToken,onLinked){
     try{nonce=btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
       const res=await api.linkStart(await getToken(),await hash(nonce));
       if(!res.ok)throw new Error(res.error==='rate_limit'?'Подожди 30 секунд перед новым запросом.':'Привязка уже существует или недоступна. Обнови статус.');
-      $('#telegram-open').href='https://t.me/'+config.telegramBot+'?start=s_'+nonce;$('#telegram-open').hidden=false;$('#telegram-code-form').hidden=false;$('#telegram-code').value='';$('#billing-message').textContent='Открой бота, нажми «Запустить» и введи полученный код здесь. Ссылка действует 10 минут.';
+      window.softAnalytics?.('telegram_link_start');$('#telegram-open').href='https://t.me/'+config.telegramBot+'?start=s_'+nonce;$('#telegram-open').hidden=false;$('#telegram-code-form').hidden=false;$('#telegram-code').value='';$('#billing-message').textContent='Открой бота, нажми «Запустить» и введи полученный код здесь. Ссылка действует 10 минут.';
     }catch(e){nonce=null;$('#billing-message').textContent=e.status?'Не удалось начать привязку. Попробуй войти заново.':e.message;}finally{button.disabled=false;}
   });
   $('#telegram-code-form').addEventListener('submit',async e=>{
@@ -26,7 +26,7 @@ export function initBilling(config,api,getToken,onLinked){
     $('#confirm-telegram').disabled=true;
     try{const res=await api.linkConfirm(await getToken(),await hash(nonce),await hash(nonce+':'+code));
       if(!res.ok){$('#billing-message').textContent=res.error==='invalid_code'?'Неверный код. Проверь сообщение бота.':'Ссылка истекла или Telegram уже привязан. Начни привязку заново.';return;}
-      nonce=null;$('#billing-message').textContent='Telegram подтверждён.';await onLinked();
+      nonce=null;$('#billing-message').textContent='Telegram подтверждён.';window.softAnalytics?.('telegram_linked');await onLinked();
     }catch{$('#billing-message').textContent='Не удалось подтвердить код. Проверь соединение и повтори.';}finally{$('#confirm-telegram').disabled=false;}
   });
   reset();return{update,reset};

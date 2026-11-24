@@ -7,7 +7,7 @@
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
     "check": "node scripts/check.mjs",
-    "test": "node --test supabase/billing.test.mjs"
+    "test": "node --test supabase/billing.test.mjs scripts/analytics.test.mjs"
   },
   "engines": {
     "node": ">=20"

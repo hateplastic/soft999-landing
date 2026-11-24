@@ -20,6 +20,7 @@ export function createAuthApi(config, fetcher = fetch) {
     user:token=>request('/auth/v1/user',{method:'GET',token}),
     linkStart:(token,p_token_hash)=>request('/rest/v1/rpc/soft_link_start',{body:{p_token_hash},token}),
     linkConfirm:(token,p_token_hash,p_code_hash)=>request('/rest/v1/rpc/soft_link_confirm',{body:{p_token_hash,p_code_hash},token}),
+    stats:(token,p_days)=>request('/rest/v1/rpc/soft_stats',{body:{p_days},token}),
     account:token=>request('/rest/v1/rpc/soft_account',{body:{},token}),
     password:(token,password)=>request('/auth/v1/user',{method:'PUT',body:{password},token}),
     logout:token=>request('/auth/v1/logout?scope=local',{token})

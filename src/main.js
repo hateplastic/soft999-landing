@@ -2,22 +2,26 @@ import { config } from './config.js';
 import { initAccount } from './account.js';
 import { initLocale, redirectToSavedLanguage } from './i18n.js';
 import { initMedia } from './media.js';
+import { createTracker, observePage } from './analytics.js';
+const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+const analyticsConsentKey='soft999.analytics.consent.v1';
+const tracker=createTracker(config,{local,rejected:()=>{try{return localStorage.getItem(analyticsConsentKey)==='rejected';}catch{return false;}}});
 // Stop here while the browser leaves: sign-in parameters must be handled once, on the final page.
-if (redirectToSavedLanguage()) await new Promise(() => {});
+if (redirectToSavedLanguage()) { tracker.view(false); await new Promise(() => {}); }
 initLocale();
+tracker.view();
 initMedia(config);
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
-const analyticsConsentKey='soft999.analytics.consent.v1';
 const analyticsId=/^G-[A-Z0-9]+$/.test(config.googleAnalyticsId||'')?config.googleAnalyticsId:'';
 function startAnalytics(){if(!analyticsId||local)return;window['ga-disable-'+analyticsId]=false;if(window.gtag)return;window.dataLayer=window.dataLayer||[];window.gtag=function(){window.dataLayer.push(arguments)};window.gtag('js',new Date());window.gtag('config',analyticsId,{anonymize_ip:true});const script=document.createElement('script');script.async=true;script.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(analyticsId);document.head.append(script);}
 function initVercelAnalytics(){if(local)return;window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};const script=document.createElement('script');script.defer=true;script.src='/_vercel/insights/script.js';document.head.append(script);}
 initVercelAnalytics();
-function analyticsEvent(name,params={}){try{if(window.gtag&&!local&&localStorage.getItem(analyticsConsentKey)==='accepted')window.gtag('event',name,params);}catch{}}
+function analyticsEvent(name,params={}){tracker.track(name,params);try{if(window.gtag&&!local&&localStorage.getItem(analyticsConsentKey)==='accepted')window.gtag('event',name,params);}catch{}}
 window.softAnalytics=analyticsEvent;
+observePage((name,params)=>analyticsEvent(name,params));
 const consentPanel=$('#analytics-consent');
-function saveAnalyticsConsent(accepted){localStorage.setItem(analyticsConsentKey,accepted?'accepted':'rejected');consentPanel.hidden=true;if(accepted)startAnalytics();else if(analyticsId)window['ga-disable-'+analyticsId]=true;}
+function saveAnalyticsConsent(accepted){if(!accepted)tracker.optOut();localStorage.setItem(analyticsConsentKey,accepted?'accepted':'rejected');consentPanel.hidden=true;if(accepted)startAnalytics();else if(analyticsId)window['ga-disable-'+analyticsId]=true;}
 $('#analytics-accept').addEventListener('click',()=>saveAnalyticsConsent(true));
 $('#analytics-reject').addEventListener('click',()=>saveAnalyticsConsent(false));
 $$('[data-analytics-settings]').forEach(button=>button.addEventListener('click',()=>{consentPanel.hidden=false;}));
@@ -40,10 +44,11 @@ if ('IntersectionObserver' in window) {
   $$('.reveal').forEach(el=>observer.observe(el));
 }
 async function download(event) {
-  analyticsEvent('download_click',{placement:event?.currentTarget?.dataset?.download||'button'});
+  const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  analyticsEvent(mobile?'download_mobile':'download_click',{placement:event?.currentTarget?.dataset?.download||'button'});
   const publicUrl=safeLink(config.downloadUrl);
   if(publicUrl){
-    if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+    if(mobile){
       info('Установка на Windows',['Этот установщик предназначен для Windows 10 / 11 x64. Открой страницу на компьютере, чтобы скачать EXE.','Установщик сам распакует клиент и создаст ярлыки. Вручную работать с ZIP не нужно.'],{url:'https://soft999.app/',label:'Открыть сайт на компьютере'});return;
     }
     location.assign(publicUrl);return;
@@ -56,7 +61,7 @@ const purchase=safeLink(config.purchaseUrl);
 if(purchase){$('#pro-label').textContent='PRO';$('#pro-caption').textContent='Подписка через Telegram / Tribute.';$$('[data-pro]').forEach(b=>b.firstChild.textContent='Подключить Pro ');}
 $$('[data-pro]').forEach(b=>b.addEventListener('click',()=>document.querySelector('[data-account]').click()));
 $$('[data-info]').forEach(b=>b.addEventListener('click',()=>{
-  if(b.dataset.info==='privacy')info('\u0422\u0432\u043e\u0438 \u0434\u0430\u043d\u043d\u044b\u0435', ['\u0414\u043b\u044f \u0443\u0447\u0451\u0442\u043d\u043e\u0439 \u0437\u0430\u043f\u0438\u0441\u0438 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u044e\u0442\u0441\u044f email \u0438 \u043f\u0430\u0440\u043e\u043b\u044c. Supabase \u0445\u0440\u0430\u043d\u0438\u0442 \u0442\u0430\u0440\u0438\u0444 \u0438 \u043f\u0440\u0438\u0432\u044f\u0437\u043a\u0443 \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u0430.', '\u0421\u0430\u0439\u0442 \u043d\u0435 \u043f\u043e\u043b\u0443\u0447\u0430\u0435\u0442 \u0441\u0435\u0441\u0441\u0438\u0438 Telegram, cookies X \u0438 \u0441\u043e\u0434\u0435\u0440\u0436\u0438\u043c\u043e\u0435 \u043b\u043e\u043a\u0430\u043b\u044c\u043d\u044b\u0445 \u043f\u0440\u043e\u0444\u0438\u043b\u0435\u0439.', 'Vercel Web Analytics \u0441\u0447\u0438\u0442\u0430\u0435\u0442 \u043e\u0431\u0435\u0437\u043b\u0438\u0447\u0435\u043d\u043d\u044b\u0435 \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440\u044b \u0441\u0442\u0440\u0430\u043d\u0438\u0446 \u0431\u0435\u0437 cookies. Google Analytics \u0438 \u0441\u043e\u0431\u044b\u0442\u0438\u044f \u0441\u043a\u0430\u0447\u0438\u0432\u0430\u043d\u0438\u044f, \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438 \u0438 \u043f\u0435\u0440\u0435\u0445\u043e\u0434\u0430 \u043a \u043e\u043f\u043b\u0430\u0442\u0435 \u0432\u043a\u043b\u044e\u0447\u0430\u044e\u0442\u0441\u044f \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u043e\u0441\u043b\u0435 \u0442\u0432\u043e\u0435\u0433\u043e \u0441\u043e\u0433\u043b\u0430\u0441\u0438\u044f. Email \u0438 \u043f\u0430\u0440\u043e\u043b\u044c \u0432 \u0430\u043d\u0430\u043b\u0438\u0442\u0438\u043a\u0443 \u043d\u0435 \u043f\u0435\u0440\u0435\u0434\u0430\u044e\u0442\u0441\u044f.']);
+  if(b.dataset.info==='privacy')info('Твои данные', ['Для учётной записи используются email и пароль. Supabase хранит тариф и привязку устройства.', 'Сайт не получает сессии Telegram, cookies X и содержимое локальных профилей.', 'Vercel Web Analytics считает обезличенные просмотры страниц без cookies. Google Analytics включается только после твоего согласия. Email и пароль в аналитику не передаются.','Для анонимной статистики сайт считает просмотры, источник перехода, прокрутку до разделов, просмотр видео, нажатия кнопок и ошибки входа: без cookies, без сохранения IP и содержимого форм. События одного дня объединяются кодом, который меняется каждые сутки. Срок хранения — до 180 дней. Кнопка «Отклонить» в настройках аналитики отключает и эту статистику.','Начиная со следующей версии программа отмечает первый запуск, первое подключение аккаунта и первую отправку. Имена аккаунтов, каналы и тексты не передаются.']);
   else info('О текущей версии',[`Soft 99.9 · ${config.version} · ${config.releaseLabel}.`,'Запусти установщик Soft 99.9 и следуй шагам. Он создаст ярлыки для запуска и остановки; Python, Node.js и Chromium включены. Если WebView2 отсутствует, он установится при первом запуске; для этого нужен интернет.','На странице доступно интерактивное демо с тестовыми данными. Подключение аккаунтов и отправка выполняются в установленном клиенте.']);
 }));
 initAccount(config);

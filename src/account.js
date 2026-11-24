@@ -1,16 +1,19 @@
 import { initBilling } from './billing.js';
 import { createAuthApi, authError } from './auth-api.js';
+import { initStats } from './stats.js';
 export function initAccount(config) {
   const api=createAuthApi(config), $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
   const dialog=$('#account-dialog'), form=$('#auth-form'), fields=form.elements;
   let mode='login', session=null, recoveryToken=null, busy=false, generation=0;
   const redirect=location.origin+'/';
-  const billing=initBilling(config,api,token,profile);
+  const billing=initBilling(config,api,token,profile),stats=initStats(api,token);
+  const event=(name,params)=>window.softAnalytics?.(name,params);
+  const failed=e=>event('auth_error',{code:e.code||(e.name==='TypeError'?'network':e.status||'unknown')});
   function base64url(bytes){return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
   async function startGoogle(){
     if(busy)return;
     if(!crypto?.subtle){message('Для безопасного входа через Google нужен современный браузер.',true);return;}
-    busy=true;$('#google-signin').disabled=true;message('Открываем защищённый вход Google…');
+    busy=true;event('google_start',{mode});$('#google-signin').disabled=true;message('Открываем защищённый вход Google…');
     try{const verifier=base64url(crypto.getRandomValues(new Uint8Array(32)));const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier));sessionStorage.setItem('soft999.google.verifier',verifier);sessionStorage.setItem('soft999.google.intent',mode==='signup'?'signup':'login');location.assign(api.oauthUrl('google',redirect,base64url(new Uint8Array(digest))));}
     catch(e){sessionStorage.removeItem('soft999.google.verifier');sessionStorage.removeItem('soft999.google.intent');message(authError(e),true);busy=false;$('#google-signin').disabled=false;}
   }
@@ -35,37 +38,37 @@ export function initAccount(config) {
     let snapshot=generation;
     try{const access=await token();snapshot=generation;const data=await api.account(access);if(snapshot!==generation)return;
       if(!data || !['free','pro','disabled'].includes(data.plan))throw new Error('Invalid account result');
-      billing.update(data);
+      billing.update(data);stats.show();
       $('#account-plan-name').textContent=data.plan==='pro'?'Pro активен':data.plan==='disabled'?'Доступ приостановлен':'Free активен';
       $('#account-plan-description').textContent=data.plan==='pro'?`Безлимитное число аккаунтов Telegram и X.${data.entitledUntil?' Оплачено до '+new Date(data.entitledUntil).toLocaleDateString('ru-RU')+'.':''}`:data.plan==='disabled'?'Обратись к владельцу сервиса для проверки доступа.':'1 Telegram + 1 X. Без ограничения по времени.';
       $('#account-device-text').textContent=data.deviceBound?'Устройство привязано в Windows-клиенте. Вход на сайте не меняет привязку.':'Устройство ещё не привязано. Оно привяжется при входе в Windows-клиент.';
     }catch(e){if(snapshot!==generation)return;billing.reset();$('#account-plan-name').textContent='Статус недоступен';$('#account-plan-description').textContent=e.status===401?'Сессия истекла. Выйди и войди ещё раз.':'Проверить текущий тариф можно в Windows-клиенте. Проверка в кабинете временно недоступна.';}
     finally{$('#refresh-account').disabled=false;}
   }
-  $$('[data-account]').forEach(b=>b.addEventListener('click',()=>{if(!dialog.open)dialog.showModal();if(session)profile();else switchMode(recoveryToken?'reset':'login');}));
+  $$('[data-account]').forEach(b=>b.addEventListener('click',()=>{event('account_open',{label:session?'profile':'login'});if(!dialog.open)dialog.showModal();if(session)profile();else switchMode(recoveryToken?'reset':'login');}));
   $$('[data-auth]').forEach(b=>b.addEventListener('click',()=>{if(!busy)switchMode(b.dataset.auth);}));
   $('#google-signin').addEventListener('click',startGoogle);
   $('#password-visibility').addEventListener('click',()=>{const shown=fields.password.type==='password';fields.password.type=shown?'text':'password';$('#password-visibility').textContent=shown?'Скрыть':'Показать';$('#password-visibility').setAttribute('aria-label',shown?'Скрыть пароль':'Показать пароль');});
   form.addEventListener('submit',async e=>{
     e.preventDefault();if(busy||!form.reportValidity())return;
     if(!fields.confirm.disabled&&fields.confirm.value!==fields.password.value){message('Пароли не совпадают.',true);return;}
-    busy=true;$('#auth-submit').disabled=true;$$('[data-auth]').forEach(b=>b.disabled=true);message('Подключаемся…');
+    busy=true;$('#auth-submit').disabled=true;$$('[data-auth]').forEach(b=>b.disabled=true);message('Подключаемся…');event('auth_submit',{mode});
     try{
       const email=fields.email.value.trim(),password=fields.password.value;
-      if(mode==='login'){setSession(await api.login(email,password));fields.password.value='';await profile();}
+      if(mode==='login'){setSession(await api.login(email,password));event('login',{method:'email'});fields.password.value='';await profile();}
       else if(mode==='signup'){const result=await api.signup(email,password,redirect);if(result.user&&(!Array.isArray(result.user.identities)||result.user.identities.length>0))window.softAnalytics?.('sign_up',{method:'email'});fields.password.value='';fields.confirm.value='';if(result.access_token){setSession(result);await profile();}else{switchMode('login');message('Проверь почту. Если регистрация доступна для этого адреса, придёт письмо с дальнейшими шагами.');}}
       else if(mode==='recover'||mode==='resend'){await api[mode](email,redirect);message('Если для этого адреса доступно письмо, оно скоро придёт. Проверь также папку «Спам».');}
       else if(mode==='reset'){if(!recoveryToken)throw new Error('Missing recovery token');await api.password(recoveryToken,password);try{await api.logout(recoveryToken);}catch{}clearSession();switchMode('login');message('Пароль изменён. Теперь можно войти.');}
-    }catch(e){message(authError(e),true);}
+    }catch(e){failed(e);message(authError(e),true);}
     finally{busy=false;$('#auth-submit').disabled=false;$$('[data-auth]').forEach(b=>b.disabled=false);}
   });
   $('#refresh-account').addEventListener('click',()=>{if(session)profile();});
   $('#signout').addEventListener('click',async()=>{const access=session?.access_token;clearSession();switchMode('login');message('Ты вышел из кабинета.');if(access){try{await api.logout(access);}catch{message('Локальный вход завершён. Сервер не подтвердил отзыв сессии; она истечёт автоматически.');}}});
   dialog.addEventListener('close',()=>{fields.password.value='';fields.confirm.value='';fields.password.type='password';$('#password-visibility').textContent='Показать';});
-  if(location.hash==='#account'){dialog.showModal();switchMode('login');}
+  if(location.hash==='#account'||location.hash==='#stats'){dialog.showModal();switchMode('login');}
   const oauthParams=new URLSearchParams(location.search),oauthCode=oauthParams.get('code');
-  if(oauthCode){history.replaceState(null,'',location.pathname+location.hash);dialog.showModal();switchMode('login');message('Завершаем вход через Google…');const verifier=sessionStorage.getItem('soft999.google.verifier'),intent=sessionStorage.getItem('soft999.google.intent');sessionStorage.removeItem('soft999.google.verifier');sessionStorage.removeItem('soft999.google.intent');if(!verifier){message('Ссылка входа устарела. Начни вход через Google ещё раз.',true);}else{api.exchangeOAuthCode(oauthCode,verifier).then(async data=>{setSession(data);if(intent==='signup')window.softAnalytics?.('sign_up',{method:'google'});await profile();}).catch(e=>message(authError(e),true));}}
-  else if(oauthParams.has('error')||oauthParams.has('error_code')){history.replaceState(null,'',location.pathname+location.hash);sessionStorage.removeItem('soft999.google.verifier');sessionStorage.removeItem('soft999.google.intent');dialog.showModal();switchMode('login');message('Вход через Google отменён или не завершён. Попробуй ещё раз.',true);}
+  if(oauthCode){history.replaceState(null,'',location.pathname+location.hash);dialog.showModal();switchMode('login');message('Завершаем вход через Google…');const verifier=sessionStorage.getItem('soft999.google.verifier'),intent=sessionStorage.getItem('soft999.google.intent');sessionStorage.removeItem('soft999.google.verifier');sessionStorage.removeItem('soft999.google.intent');if(!verifier){message('Ссылка входа устарела. Начни вход через Google ещё раз.',true);}else{api.exchangeOAuthCode(oauthCode,verifier).then(async data=>{setSession(data);event(intent==='signup'?'sign_up':'login',{method:'google'});await profile();}).catch(e=>{failed(e);message(authError(e),true);});}}
+  else if(oauthParams.has('error')||oauthParams.has('error_code')){event('auth_error',{code:'google_cancelled'});history.replaceState(null,'',location.pathname+location.hash);sessionStorage.removeItem('soft999.google.verifier');sessionStorage.removeItem('soft999.google.intent');dialog.showModal();switchMode('login');message('Вход через Google отменён или не завершён. Попробуй ещё раз.',true);}
   const hash=new URLSearchParams(location.hash.slice(1));
   if(hash.has('access_token')||hash.has('error')||hash.has('error_description')){
     history.replaceState(null,'',location.pathname+location.search);
